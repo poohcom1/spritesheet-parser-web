@@ -1,4 +1,4 @@
-package com.poohcom1.spritesheetparserweb;
+package com.poohcom1.spritesheetparserweb.models;
 
 public class Greeting {
     private final long id;

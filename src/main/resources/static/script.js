@@ -1,12 +1,11 @@
+const HOST_SERVER = ""
+
 const form = document.getElementById("imagechooser")
 
 const image = document.getElementById("image")
-
 image.style.display = "none"
 
-const HOST_SERVER = ""
-
-alert("no!")
+const canvas = document.getElementById("canvas")
 
 
 function sendPostRequest(file) {
@@ -37,3 +36,8 @@ form.onsubmit = (e) => {
 
     sendPostRequest(fileInput.files[0]).then((response) => response.json()).then(text => console.log(text))
 }
+
+const ctx = canvas.getContext("2d");
+
+ctx.fillStyle = "rgba(0, 0, 0)"
+ctx.fillRect(0, 0, canvas.width, canvas.height)
