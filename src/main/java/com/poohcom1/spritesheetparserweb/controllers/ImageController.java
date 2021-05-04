@@ -39,7 +39,7 @@ public class ImageController {
 
         List<BlobModel> blobModels = new ArrayList<>();
 
-        blobs.forEach(b -> blobModels.add(new BlobModel(b.x, b.y, b.maxX(), b.maxY(), b.getPoints(), b.getRow(), b.getColumn())));
+        blobs.forEach(b -> blobModels.add(new BlobModel(b.x, b.y, b.width, b.height, b.getPoints(), b.getRow(), b.getColumn())));
 
         return blobModels;
     }

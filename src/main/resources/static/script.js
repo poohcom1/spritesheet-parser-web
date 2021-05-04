@@ -2,14 +2,39 @@ const HOST_SERVER = ""
 
 const form = document.getElementById("imagechooser")
 
-const image = document.getElementById("image")
-image.style.display = "none"
-
 const canvas = document.getElementById("canvas")
+const ctx = canvas.getContext("2d");
 
+
+form.onsubmit = (e) => {
+    e.preventDefault();
+
+    let fileInput = document.getElementById("imageInput")
+
+    const imageUrl = URL.createObjectURL(fileInput.files[0])
+
+    const image = new Image
+    image.src = imageUrl
+    image.onload = () => {
+        canvas.width = image.width;
+        canvas.height = image.height;
+        setCanvasImage(image)
+    }
+
+    sendPostRequest(fileInput.files[0])
+        .then((response) => response.json())
+        .then(data => {
+            console.log(data)
+           
+            data.forEach(rect => {
+                ctx.beginPath();
+                ctx.rect(rect.x, rect.y, rect.width, rect.height);
+                ctx.stroke()
+            })
+        })
+}
 
 function sendPostRequest(file) {
-
     const formData = new FormData()
     formData.append("file", file)
     formData.append("backgroundColors", [])
@@ -23,21 +48,6 @@ function sendPostRequest(file) {
     })
 }
 
-form.onsubmit = (e) => {
-    e.preventDefault();
-
-    let fileInput = document.getElementById("img")
-
-    const imageUrl = URL.createObjectURL(fileInput.files[0])
-
-    image.src = imageUrl
-    image.style.display = "block"
-
-
-    sendPostRequest(fileInput.files[0]).then((response) => response.json()).then(text => console.log(text))
+function setCanvasImage(image, rect = []) {
+    ctx.drawImage(image, 0, 0)
 }
-
-const ctx = canvas.getContext("2d");
-
-ctx.fillStyle = "rgba(0, 0, 0)"
-ctx.fillRect(0, 0, canvas.width, canvas.height)

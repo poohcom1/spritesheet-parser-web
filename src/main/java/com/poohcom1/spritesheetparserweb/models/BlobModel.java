@@ -4,44 +4,45 @@ import java.awt.*;
 import java.util.List;
 
 public class BlobModel {
-    private final int x1;
-    private final int x2;
-    private final int y1;
-    private final int y2;
+    private final int x;
+    private final int y;
+    private final int width;
+    private final int height;
+
+    private final List<Point> points;
 
     private final int row;
     private final int col;
 
-    private final List<Point> points;
-
-    public BlobModel(int x1, int y1, int x2, int y2, List<Point> points, int row, int col) {
-        this.x1 = x1;
-        this.x2 = x2;
-        this.y1 = y1;
-        this.y2 = y2;
-
+    public BlobModel(int x, int y, int width, int height, List<Point> points, int row, int col) {
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
         this.row = row;
         this.col = col;
-
         this.points = points;
     }
 
-    public int getX1() {
-        return x1;
+    public int getX() {
+        return x;
     }
 
-    public int getX2() {
-        return x2;
+    public int getY() {
+        return y;
     }
 
-    public int getY1() {
-        return y1;
+    public int getWidth() {
+        return width;
     }
 
-    public int getY2() {
-        return y2;
+    public int getHeight() {
+        return height;
     }
 
+    public List<Point> getPoints() {
+        return points;
+    }
 
     public int getRow() {
         return row;
@@ -49,9 +50,5 @@ public class BlobModel {
 
     public int getCol() {
         return col;
-    }
-
-    public List<Point> getPoints() {
-        return points;
     }
 }
