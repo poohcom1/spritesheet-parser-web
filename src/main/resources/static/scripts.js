@@ -1,4 +1,4 @@
-import {Marquee, SpriteData, SpritesheetData, initUploadFileForm} from "./models.js";
+import {Marquee, SpriteData, SpritesheetData, Blob, initUploadFileForm} from "./models.js";
 import {sendCropRequest, sendBlobDetectionRequest} from "./requests.js"
 
 // DOMs
@@ -21,6 +21,8 @@ let mouseDown = false;
 // SPRITESHEET CROPPING
 
 function drawCropCanvas() {
+    if (spritesheets.length === 0) return;
+
     const spritesheetData = spritesheets[spritesheetIndex]
 
     const ctx = cropCanvas.getContext('2d')
@@ -38,34 +40,33 @@ function drawCropCanvas() {
     })
 }
 
+cropCanvas.onmousedown = (e) => {
+    mouseDown = true;
+    getSpritesheet().marquees.push(new Marquee(e.offsetX, e.offsetY))
+}
+
+cropCanvas.onmousemove = (e) => {
+    if (mouseDown) {
+        getSpritesheet().marquees[getSpritesheet().marquees.length-1].drag(e.offsetX, e.offsetY)
+    }
+    drawCropCanvas()
+}
+
+cropCanvas.onmouseup = (e) => {
+    mouseDown = false;
+}
+
+/**
+ * @returns {SpritesheetData}
+ */
 function getSpritesheet() {
     return spritesheets[spritesheetIndex];
 }
 
-const setSpritesheetForm = (image, index) => {
-    spritesheets.push(SpritesheetData(image))
+const addSpritesheetFromFile = (image, file, index) => {
+    spritesheets.push(new SpritesheetData(image, file.name))
 
     spritesheetIndex = index;
-
-    cropCanvas.onmouseenter = (e) => {
-        console.log(e.button)
-    }
-
-    cropCanvas.onmousedown = (e) => {
-        mouseDown = true;
-        getSpritesheet().marquees.push(new Marquee(e.offsetX, e.offsetY))
-    }
-
-    cropCanvas.onmousemove = (e) => {
-        if (mouseDown) {
-            getSpritesheet().marquees[getSpritesheet().marquees.length-1].drag(e.offsetX, e.offsetY)
-        }
-        drawCropCanvas()
-    }
-
-    cropCanvas.onmouseup = (e) => {
-        mouseDown = false;
-    }
 
     drawCropCanvas()
 }
@@ -73,60 +74,114 @@ const setSpritesheetForm = (image, index) => {
 initUploadFileForm(spritesheetForm, i => {
     spritesheetIndex = i;
     drawCropCanvas();
-}, setSpritesheetForm)
+}, addSpritesheetFromFile)
 
 document.getElementById("cropButton").onclick = () => {
-    const image = getSpritesheet().image;
+    const spritesheet = getSpritesheet();
+    const image = spritesheet.image;
 
-    getSpritesheet().marquees.forEach(m => {
-        fetch(getSpritesheet().image.src).then(response => response.blob()).then(file => {
+    spritesheet.marquees.forEach(m => {
+        fetch(spritesheet.image.src).then(response => response.blob()).then(file => {
             sendCropRequest(file, m.x, m.y, m.width, m.height)
                 .then(response => response.blob())
-                .then(blob => {
+                .then(file => {
                     const image = new Image
-                    image.src = URL.createObjectURL(blob)
+                    image.src = URL.createObjectURL(file)
 
-                    addSprite(image)
+                    const name = spritesheet.name + " #" + spritesheet.spriteCount++;
+
+                    addSprite(image, file, name);
                 })
         })
     })
 }
 
 // BLOB DETECTION
-function addSprite(image) {
-    sendBlobDetectionRequest(image)
-        .then(response => response.json())
-        .then(data => {
-            sprites.push(new SpriteData(image, data))
-        })
+
+/**
+ * @returns {SpriteData}
+ */
+function getCurrentSprite() {
+    return sprites[spriteIndex];
 }
 
-function drawBlobCanvas() {
-    const sprite = sprites[spriteIndex]
+function drawSpriteCanvas() {
+    if (sprites.length === 0) return;
 
-    const ctx = spriteCanvas.getContext('2d')
-    cropCanvas.width = sprite.image.width;
-    cropCanvas.height = sprite.image.height;
+    const ctx = spriteCanvas.getContext("2d");
 
-    ctx.clearRect(0, 0, cropCanvas.width, cropCanvas.height)
+    spriteCanvas.width = getCurrentSprite().image.width;
+    spriteCanvas.height = getCurrentSprite().image.height;
 
-    ctx.drawImage(sprite.image, 0, 0)
-
-
-    sprite.blobs.forEach(b => {
-        ctx.beginPath()
-        ctx.rect(b.x, b.y, b.width, b.height)
-        ctx.stroke()
+    ctx.drawImage(getCurrentSprite().image, 0, 0)
+    getCurrentSprite().blobs.forEach(b => {
+        ctx.beginPath();
+        ctx.strokeStyle = "red"
+        ctx.rect(b.x, b.y, b.width, b.height);
+        ctx.stroke();
     })
 }
 
-function setSpriteForm() {
+spriteCanvas.onmouseenter = (e) => {
 
 }
 
-// initUploadFileForm(spriteForm, image => {
-//
-// })
+spriteCanvas.onmousedown = (e) => {
+
+}
+
+spriteCanvas.onmousemove = (e) => {
+
+}
+
+spriteCanvas.onmouseup = (e) => {
+    mouseDown = false;
+}
+
+/**
+ * @param image
+ * @param file
+ * @param {string} name
+ */
+function addSprite(image, file, name) {
+    sendBlobDetectionRequest(file)
+        .then(response => response.json())
+        .then(data => {
+            sprites.push(new SpriteData(image, data.map(rect => new Blob(rect))))
+
+            const option = document.createElement("option")
+
+            option.text = name
+
+            spriteForm.querySelector("select").add(option)
+
+            drawSpriteCanvas()
+        });
+}
+
+
+function addSpriteFromFile(image, file, index) {
+    sendBlobDetectionRequest(file)
+        .then(response => response.json())
+        .then(data => {
+            sprites.push(new SpriteData(image, data.map(rect => new Blob(rect))))
+
+            spriteIndex = index;
+
+            const option = document.createElement("option")
+
+            option.text = file.name
+
+            spriteForm.querySelector("select").add(option)
+
+            drawSpriteCanvas()
+        });
+}
+
+initUploadFileForm(spriteForm, i => {
+    spriteIndex = i;
+    drawSpriteCanvas();
+}, addSpriteFromFile)
 
 function setCanvasImage(ctx, image, rect = []) {
     image.onload = () => {

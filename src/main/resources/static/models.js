@@ -33,23 +33,44 @@ export class Marquee {
 
 
 /**
- *
  * @param {HTMLImageElement} image
+ * @param {string} name
  * @param {Marquee[]} marquees
- * @returns {{image, marquees}}
  * @constructor
  */
-export function SpritesheetData(image, marquees = [])  {
-    return {image: image, marquees: marquees}
+export function SpritesheetData(image, name, marquees = [])  {
+    this.image = image;
+    this.name = name;
+    this.marquees = marquees;
+    this.spriteCount = 0;
 }
 
-export function SpriteData(image, blobs=[]) {
-    return {image: image, blobs: blobs}
+/**
+ * @param {HTMLImageElement} image
+ * @param {Blob[]} blobs
+ * @constructor
+ */
+export function SpriteData(image, blobs= []) {
+    this.image = image;
+    this.blobs = blobs;
+}
+
+/**
+ * @param rect
+ * @constructor
+ */
+export function Blob(rect) {
+    this.x = rect.x;
+    this.y = rect.y;
+    this.width = rect.width;
+    this.height = rect.height;
+    this.selected = false;
 }
 
 /**
  * @callback imageAddedCallback
  * @param {HTMLImageElement} image
+ * @param {File} file
  * @param {number} index
  */
 /**
@@ -84,7 +105,7 @@ export function initUploadFileForm(formElement, onSelect, onImageAdded) {
         image.onload = () => {
             selectElement.selectedIndex = selectElement.length-1
 
-            onImageAdded(image, selectElement.length-1)
+            onImageAdded(image, inputElement.files[0], selectElement.length-1)
         }
     }
 }

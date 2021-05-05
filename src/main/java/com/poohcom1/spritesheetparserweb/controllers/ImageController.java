@@ -44,6 +44,8 @@ public class ImageController {
 
         blobs.forEach(b -> blobModels.add(new BlobModel(b.x, b.y, b.width, b.height, b.getPoints(), b.getRow(), b.getColumn())));
 
+        System.out.printf("Found %d blobs!\n", blobs.size());
+
         return blobModels;
     }
 
@@ -56,7 +58,7 @@ public class ImageController {
         // Received image
         BufferedImage image = ImageIO.read(file.getInputStream());
 
-        System.out.printf("x: %d, y: %d, width: %d, height: %d\n", x, y, w, h);
+        //System.out.printf("x: %d, y: %d, width: %d, height: %d\n", x, y, w, h);
 
         try {
             image = image.getSubimage(x, y, w, h);
