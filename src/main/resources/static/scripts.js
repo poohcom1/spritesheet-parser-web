@@ -260,10 +260,9 @@ initUploadFileForm(spriteForm, i => {
     drawSpriteCanvas();
 }, addSpriteFromFile)
 
-function setCanvasImage(ctx, image, rect = []) {
-    image.onload = () => {
-        ctx.drawImage(image, 0, 0)
-    }
+document.getElementById("resetBlobs").onclick = () => {
+    getCurrentSprite().reset();
+    drawSpriteCanvas();
 }
 
 // ========================================== SPRITE PLAYER ==============================================

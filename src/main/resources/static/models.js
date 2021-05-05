@@ -53,7 +53,14 @@ export function SpritesheetData(image, name, marquees = [])  {
 export function SpriteData(image, blobs= []) {
     this.image = image;
     this.blobs = blobs;
+    const originalBlobs = JSON.parse(JSON.stringify(blobs))
+
+    this.reset = () => {
+        this.blobs = JSON.parse(JSON.stringify(originalBlobs))
+    }
 }
+
+
 
 /**
  * @param blob
