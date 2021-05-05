@@ -56,14 +56,21 @@ export function SpriteData(image, blobs= []) {
 }
 
 /**
- * @param rect
+ * @param blob
  * @constructor
  */
-export function Blob(rect) {
-    this.x = rect.x;
-    this.y = rect.y;
-    this.width = rect.width;
-    this.height = rect.height;
+export function Blob(blob) {
+    this.x = blob.x;
+    this.y = blob.y;
+    this.width = blob.width;
+    this.height = blob.height;
+
+    this.row = blob.row
+    this.col = blob.col;
+
+    this.xPadding = 0;
+    this.yPadding = 0;
+
     this.selected = false;
 }
 
@@ -91,6 +98,8 @@ export function initUploadFileForm(formElement, onSelect, onImageAdded) {
     }
 
     inputElement.onchange = () => {
+        console.log("Image added from file")
+
         let imageUrl = URL.createObjectURL(inputElement.files[0])
 
         const image = new Image

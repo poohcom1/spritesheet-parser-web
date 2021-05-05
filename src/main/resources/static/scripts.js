@@ -1,5 +1,6 @@
 import {Blob, initUploadFileForm, Marquee, SpriteData, SpritesheetData} from "./models.js";
 import {sendBlobDetectionRequest, sendCropRequest} from "./requests.js"
+import {mergeRectsInList, rectContainsPoint, rectIntersects} from "./utils.js";
 
 // DOMs
 const spritesheetForm = document.getElementById("spritesheetForm")
@@ -8,6 +9,9 @@ const spriteForm = document.getElementById("spriteForm")
 const cropCanvas = document.getElementById("cropCanvas")
 const spriteCanvas = document.getElementById("spriteCanvas")
 const playerCanvas = document.getElementById("playerCanvas")
+
+// Parameters
+let fps = 12;
 
 // Data
 const spritesheets = []
@@ -18,6 +22,15 @@ let spriteIndex = 0;
 
 // States
 let mouseDown = false;
+
+// =============================== GENERAL EVENTS ======================================
+
+onmouseup = () => {
+    mouseDown = false
+    selectMarquee = new Marquee(0, 0)
+    drawCropCanvas();
+    drawSpriteCanvas();
+}
 
 // ================================ SPRITESHEET CROPPING ================================
 
@@ -82,7 +95,6 @@ initUploadFileForm(spritesheetForm, i => {
 // On crop
 document.getElementById("cropButton").onclick = () => {
     const spritesheet = getSpritesheet();
-    const image = spritesheet.image;
 
     spritesheet.marquees.forEach(m => {
         // Convert url to file
@@ -110,6 +122,10 @@ document.getElementById("cropButton").onclick = () => {
 
 // ================================ BLOB DETECTION ================================
 
+let selectMarquee = new Marquee(0, 0);
+
+let selectedBlobs = []
+
 /**
  * @returns {SpriteData}
  */
@@ -126,28 +142,81 @@ function drawSpriteCanvas() {
     spriteCanvas.height = getCurrentSprite().image.height;
 
     ctx.drawImage(getCurrentSprite().image, 0, 0)
+
+    // Blobs
     getCurrentSprite().blobs.forEach(b => {
         ctx.beginPath();
-        ctx.strokeStyle = "red"
-        ctx.rect(b.x, b.y, b.width, b.height);
+        ctx.strokeStyle = "rgba(255, 0, 0, 0.5)"
+        ctx.rect(b.x-0.5, b.y-0.5, b.width+2, b.height+2);
         ctx.stroke();
     })
+
+    // Selected blobs
+    selectedBlobs.forEach(b => {
+        ctx.fillStyle = "rgba(255, 0, 0, 0.5)"
+        ctx.fillRect(b.x, b.y, b.width+1, b.height+1)
+    })
+
+    // Draw marquee
+    if (selectMarquee) {
+        const m = new Path2D();
+        m.rect(selectMarquee.x, selectMarquee.y, selectMarquee.width, selectMarquee.height)
+        m.rect(selectMarquee.x+1, selectMarquee.y+1, selectMarquee.width-2, selectMarquee.height-2)
+        ctx.clip(m, "evenodd");
+        ctx.globalCompositeOperation = "exclusion"
+        ctx.fillStyle = "white"
+        ctx.fillRect(selectMarquee.x, selectMarquee.y, selectMarquee.width, selectMarquee.height)
+    }
 }
 
+// BLOB CANVAS ACTIONS
 spriteCanvas.onmouseenter = (e) => {
-
+    if (e.buttons !== 1) {
+        selectMarquee = null
+        mouseDown = false
+    }
+    if (e.buttons === 1) {
+        mouseDown = true;
+        selectMarquee = new Marquee(e.offsetX, e.offsetY)
+    }
 }
 
 spriteCanvas.onmousedown = (e) => {
+    mouseDown = true;
+    selectedBlobs = []
+    selectMarquee = new Marquee(e.offsetX, e.offsetY)
 
+    getCurrentSprite().blobs.forEach(b => {
+        if (rectContainsPoint(b, {x: e.offsetX, y: e.offsetY})) selectedBlobs.push(b);
+    })
 }
 
 spriteCanvas.onmousemove = (e) => {
+    if (mouseDown) {
+        selectMarquee.drag(e.offsetX, e.offsetY)
+
+        selectedBlobs = []
+
+        getCurrentSprite().blobs.forEach(b => {
+            if (rectContainsPoint(b, {x: e.offsetX, y: e.offsetY})) {
+                selectedBlobs.push(b);
+            } else if (rectIntersects(selectMarquee, b)) {
+                selectedBlobs.push(b)
+            }
+        })
+
+        drawSpriteCanvas()
+    }
 
 }
 
 spriteCanvas.onmouseup = (e) => {
     mouseDown = false;
+
+    mergeRectsInList(getCurrentSprite().blobs, selectedBlobs)
+
+    selectMarquee = null
+    drawSpriteCanvas()
 }
 
 /**
@@ -180,11 +249,6 @@ function addSpriteFromFile(image, file, index) {
 
             spriteIndex = index;
 
-            const option = document.createElement("option")
-
-            option.text = file.name
-
-            spriteForm.querySelector("select").add(option)
 
             drawSpriteCanvas()
         });
@@ -192,6 +256,7 @@ function addSpriteFromFile(image, file, index) {
 
 initUploadFileForm(spriteForm, i => {
     spriteIndex = i;
+    console.log(spriteIndex)
     drawSpriteCanvas();
 }, addSpriteFromFile)
 
@@ -203,22 +268,28 @@ function setCanvasImage(ctx, image, rect = []) {
 
 // ========================================== SPRITE PLAYER ==============================================
 let _frame = 0;
+let isPlaying = true;
 
 function animateSprite() {
-    const sprite = getCurrentSprite();
-    if (!(sprite && sprite.blobs.length > 0)) return;
+    if (isPlaying) {
+        const sprite = getCurrentSprite();
+        if (!(sprite && sprite.blobs.length > 0)) return;
 
-    const image = sprite.image;
-    const blob = sprite.blobs[_frame];
+        const image = sprite.image;
+        const blob = sprite.blobs[_frame];
 
-    const ctx = playerCanvas.getContext("2d")
+        if (!blob) return; // in case of overwrites during blob merging
 
-    ctx.drawImage(image, blob.x, blob.y, blob.width, blob.height, 0, 0, blob.width, blob.height)
+        const ctx = playerCanvas.getContext("2d")
 
-    _frame++;
-    if (_frame >= sprite.blobs.length) {
-        _frame = 0;
+        ctx.clearRect(0, 0, playerCanvas.width, playerCanvas.height)
+        ctx.drawImage(image, blob.x, blob.y, blob.width, blob.height, 0, 0, blob.width, blob.height)
+
+        _frame++;
+        if (_frame >= sprite.blobs.length) {
+            _frame = 0;
+        }
     }
 }
 
-setInterval(animateSprite, 160)
+setInterval(animateSprite, (1/fps) * 1000)
