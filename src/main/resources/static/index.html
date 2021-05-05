@@ -7,6 +7,7 @@
     <title>Spritesheet Parser</title>
   </head>
   <body>
+    <h2>Crop Spritesheet</h2>
     <form id="spritesheetForm">
       <label for="spritesheetInput">Upload Spritesheet:</label>
       <select id="spritesheetSelect">
@@ -20,6 +21,7 @@
 
     <button id="cropButton">Crop Canvas</button>
 
+    <h2>Extract sprites</h2>
     <form id="spriteForm">
       <label for="spriteInput">Upload Sprite:</label>
       <select id="spriteSelect">
@@ -27,8 +29,10 @@
       <input type="file" id="spriteInput" name="img" accept="image/*" />
     </form>
 
-    <canvas id="spriteCanvas"> </canvas>
+    <canvas id="spriteCanvas"></canvas>
 
+    <h3>Sprite Player</h3>
+    <canvas id="playerCanvas"></canvas>
 
     <script type="module" src="models.js"></script>
     <script type="module" src="requests.js"></script>

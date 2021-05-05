@@ -1,5 +1,5 @@
-import {Marquee, SpriteData, SpritesheetData, Blob, initUploadFileForm} from "./models.js";
-import {sendCropRequest, sendBlobDetectionRequest} from "./requests.js"
+import {Blob, initUploadFileForm, Marquee, SpriteData, SpritesheetData} from "./models.js";
+import {sendBlobDetectionRequest, sendCropRequest} from "./requests.js"
 
 // DOMs
 const spritesheetForm = document.getElementById("spritesheetForm")
@@ -7,6 +7,7 @@ const spriteForm = document.getElementById("spriteForm")
 
 const cropCanvas = document.getElementById("cropCanvas")
 const spriteCanvas = document.getElementById("spriteCanvas")
+const playerCanvas = document.getElementById("playerCanvas")
 
 // Data
 const spritesheets = []
@@ -18,7 +19,7 @@ let spriteIndex = 0;
 // States
 let mouseDown = false;
 
-// SPRITESHEET CROPPING
+// ================================ SPRITESHEET CROPPING ================================
 
 function drawCropCanvas() {
     if (spritesheets.length === 0) return;
@@ -39,6 +40,8 @@ function drawCropCanvas() {
         ctx.stroke()
     })
 }
+
+// Crop canvas setup
 
 cropCanvas.onmousedown = (e) => {
     mouseDown = true;
@@ -76,27 +79,36 @@ initUploadFileForm(spritesheetForm, i => {
     drawCropCanvas();
 }, addSpritesheetFromFile)
 
+// On crop
 document.getElementById("cropButton").onclick = () => {
     const spritesheet = getSpritesheet();
     const image = spritesheet.image;
 
     spritesheet.marquees.forEach(m => {
+        // Convert url to file
         fetch(spritesheet.image.src).then(response => response.blob()).then(file => {
+            // POST Request to crop all images in marquees
             sendCropRequest(file, m.x, m.y, m.width, m.height)
                 .then(response => response.blob())
                 .then(file => {
                     const image = new Image
                     image.src = URL.createObjectURL(file)
 
+                    // Name image with index
                     const name = spritesheet.name + " #" + spritesheet.spriteCount++;
 
+                    // Add to sprites
                     addSprite(image, file, name);
                 })
         })
     })
+
+    spritesheet.marquees.splice(0, spritesheet.marquees.length)
+    // Update the marquee removal
+    drawCropCanvas();
 }
 
-// BLOB DETECTION
+// ================================ BLOB DETECTION ================================
 
 /**
  * @returns {SpriteData}
@@ -188,3 +200,25 @@ function setCanvasImage(ctx, image, rect = []) {
         ctx.drawImage(image, 0, 0)
     }
 }
+
+// ========================================== SPRITE PLAYER ==============================================
+let _frame = 0;
+
+function animateSprite() {
+    const sprite = getCurrentSprite();
+    if (!(sprite && sprite.blobs.length > 0)) return;
+
+    const image = sprite.image;
+    const blob = sprite.blobs[_frame];
+
+    const ctx = playerCanvas.getContext("2d")
+
+    ctx.drawImage(image, blob.x, blob.y, blob.width, blob.height, 0, 0, blob.width, blob.height)
+
+    _frame++;
+    if (_frame >= sprite.blobs.length) {
+        _frame = 0;
+    }
+}
+
+setInterval(animateSprite, 160)
