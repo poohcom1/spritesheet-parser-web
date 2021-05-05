@@ -7,15 +7,31 @@
     <title>Spritesheet Parser</title>
   </head>
   <body>
-    <form id="imagechooser">
-      <label for="imageInput">Select image:</label>
-      <input type="file" id="imageInput" name="img" accept="image/*" />
-      <br />
-      <input type="submit" />
+    <form id="spritesheetForm">
+      <label for="spritesheetInput">Upload Spritesheet:</label>
+      <select id="spritesheetSelect">
+      </select>
+      <input type="file" id="spritesheetInput" name="img" accept="image/*"/>
     </form>
 
-    <canvas id="canvas"> </canvas>
+    <canvas id="cropCanvas"> </canvas>
 
-    <script src="script.js"></script>
+    <br/>
+
+    <button id="cropButton">Crop Canvas</button>
+
+    <form id="spriteForm">
+      <label for="spriteInput">Upload Sprite:</label>
+      <select id="spriteSelect">
+      </select>
+      <input type="file" id="spriteInput" name="img" accept="image/*" />
+    </form>
+
+    <canvas id="spriteCanvas"> </canvas>
+
+
+    <script type="module" src="models.js"></script>
+    <script type="module" src="requests.js"></script>
+    <script type="module" src="scripts.js"></script>
   </body>
 </html>
