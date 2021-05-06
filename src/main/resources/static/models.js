@@ -51,6 +51,8 @@ export function SpritesheetData(image, name, marquees = [])  {
  * @constructor
  */
 export function SpriteData(image, blobs= []) {
+    blobs = blobs.filter(b => b.points.length !== 0)
+
     this.image = image;
     this.blobs = blobs;
     const originalBlobs = JSON.parse(JSON.stringify(blobs))

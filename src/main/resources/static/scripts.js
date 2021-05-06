@@ -1,6 +1,6 @@
 import {BlobRect, convertToBlob, initUploadFileForm, Marquee, SpriteData, SpritesheetData} from "./models.js";
 import {sendBlobDetectionRequest, sendCropRequest} from "./requests.js"
-import {getMaxDimensions, mergeBlobsInlist, rectContainsPoint, rectIntersects} from "./utils.js";
+import {getMaxDimensions, mergeBlobsInlist, rectContainsPoint, rectIntersects, removePoints} from "./utils.js";
 
 // DOMs
 const spritesheetForm = document.getElementById("spritesheetForm")
@@ -14,8 +14,17 @@ const mergeBlobButton = document.getElementById("mergeButton")
 const deleteBlobButton = document.getElementById("deleteBlobButton")
 const removePointsButton = document.getElementById("removePointsButton")
 
+const showNumberCheckbox = document.getElementById("showNumbers")
+
+const playButton = document.getElementById("playButton")
+const nextButton = document.getElementById("nextFrame")
+
 // Parameters
 let fps = 12;
+
+const MERGE_KEYS = ['e', 'm'];
+const DELETE_KEYS = ['d'];
+const REMOVE_KEYS = ['r'];
 
 // Data
 const spritesheets = []
@@ -29,6 +38,14 @@ let mouseDown = false;
 
 let dimensions = {width: 0, height: 0} // Dimensions of current sprite for the sprite player canvas
 
+let showBlobs = true;
+let showNumbers = false;
+
+/**
+ * @type {{string: boolean}}
+ */
+let keys = {}
+
 // =============================== GENERAL EVENTS ======================================
 
 onmouseup = () => {
@@ -36,6 +53,25 @@ onmouseup = () => {
     selectMarquee = new Marquee(0, 0)
     drawCropCanvas();
     drawSpriteCanvas();
+}
+
+onkeydown = (e) => {
+    keys = {}
+    keys[e.key] = true;
+
+    if (MERGE_KEYS.includes(e.key)) {
+        mergeBlobButton.click();
+    }
+    if (DELETE_KEYS.includes(e.key)) {
+        deleteBlobButton.click();
+    }
+    if (REMOVE_KEYS.includes(e.key)) {
+        removePointsButton.click();
+    }
+}
+
+onkeyup = (e) => {
+    keys[e.key] = false;
 }
 
 // ================================ SPRITESHEET CROPPING ================================
@@ -201,7 +237,29 @@ spriteCanvas.onmouseup = (e) => {
 mergeBlobButton.onclick = () => {
     mergeBlobsInlist(getCurrentSprite().blobs, selectedBlobs);
     selectedBlobs = [];
-    selectedPoints = []
+    selectedPoints = [];
+    drawSpriteCanvas();
+}
+
+deleteBlobButton.onclick = () => {
+    getCurrentSprite().blobs = getCurrentSprite().blobs.filter(b => !selectedBlobs.includes(b))
+    selectedBlobs = [];
+    selectedPoints = [];
+    drawSpriteCanvas();
+}
+
+removePointsButton.onclick = () => {
+    selectedBlobs.forEach(b => {
+        const pointCount = removePoints(b, selectedPoints);
+        if (pointCount === 0) getCurrentSprite().blobs.splice(getCurrentSprite().blobs.indexOf(b), 1)
+    })
+    selectedBlobs = [];
+    selectedPoints = [];
+    drawSpriteCanvas();
+}
+
+showNumberCheckbox.onchange = () => {
+    showNumbers = showNumberCheckbox.checked;
     drawSpriteCanvas();
 }
 
@@ -214,10 +272,15 @@ function getCurrentSprite() {
     return sprites[spriteIndex];
 }
 
+/**
+ * Draws the sprite canvas based on current state
+ */
 function drawSpriteCanvas() {
     if (sprites.length === 0) return;
 
     const ctx = spriteCanvas.getContext("2d");
+
+    ctx.save();
 
     spriteCanvas.width = getCurrentSprite().image.width;
     spriteCanvas.height = getCurrentSprite().image.height;
@@ -225,13 +288,26 @@ function drawSpriteCanvas() {
     ctx.drawImage(getCurrentSprite().image, 0, 0)
 
     // Blobs
-    ctx.beginPath();
     getCurrentSprite().blobs.forEach(b => {
-
+        ctx.beginPath();
         ctx.strokeStyle = "rgba(255, 0, 0, 0.5)"
         ctx.rect(b.x-0.5, b.y-0.5, b.width+2, b.height+2);
+        ctx.closePath();
+        ctx.stroke();
+
+        if (showNumbers) {
+            let textSize = 20;
+            ctx.font = `${textSize}px Arial`;
+            const text = "" + (getCurrentSprite().blobs.indexOf(b) + 1);
+            const size = ctx.measureText(text);
+            console.log(size)
+            ctx.fillStyle = "rgba(255, 0, 0, 0.5)"
+            ctx.fillRect(b.x + (b.width - size.width)/2 + 1,b.y + (b.height - textSize)/2 + 1, size.width+1, textSize+1)
+            ctx.fillStyle = "white"
+            ctx.fillText(text, b.x + (b.width - size.width)/2, b.y + (b.height + textSize)/2)
+        }
     })
-    ctx.stroke();
+
 
     // Selected blobs
     selectedBlobs.forEach(b => {
@@ -305,33 +381,46 @@ document.getElementById("resetBlobs").onclick = () => {
     drawSpriteCanvas();
 }
 
+
+
 // ========================================== SPRITE PLAYER ==============================================
 let _frame = 0;
 let isPlaying = true;
 
 function animateSprite() {
     if (isPlaying) {
-        const sprite = getCurrentSprite();
-        if (!(sprite && sprite.blobs.length > 0)) return;
-
-        if (_frame >= sprite.blobs.length) {
-            _frame = 0;
-        }
-
-        const image = sprite.image;
-        const blob = sprite.blobs[_frame];
-
-        if (!blob) return; // in case of overwrites during blob merging
-
-        const ctx = playerCanvas.getContext("2d")
-
-        ctx.clearRect(0, 0, playerCanvas.width, playerCanvas.height)
-        ctx.drawImage(image, blob.x, blob.y, blob.width, blob.height, 0, 0, blob.width, blob.height)
-
-        document.getElementById("frame").innerText = _frame;
-
-        _frame++;
+        drawPlayerCanvas()
     }
 }
 
+function drawPlayerCanvas() {
+    const sprite = getCurrentSprite();
+    if (!(sprite && sprite.blobs.length > 0)) return;
+
+    if (_frame >= sprite.blobs.length) {
+        _frame = 0;
+    }
+    const image = sprite.image;
+    const blob = sprite.blobs[_frame];
+
+    if (!blob) return; // in case of overwrites during blob merging
+
+    const ctx = playerCanvas.getContext("2d")
+
+    ctx.clearRect(0, 0, playerCanvas.width, playerCanvas.height)
+    ctx.drawImage(image, blob.x, blob.y, blob.width, blob.height, 0, 0, blob.width, blob.height)
+
+    document.getElementById("frame").innerText = _frame;
+
+    _frame++;
+}
+
 setInterval(animateSprite, (1/fps) * 1000)
+
+playButton.onclick = () => {
+    isPlaying = !isPlaying
+}
+
+nextButton.onclick = () => {
+    drawPlayerCanvas()
+}

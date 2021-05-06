@@ -7,6 +7,11 @@
  */
 
 /**
+ * @typedef BlobRect
+ * @typedef {Rect & BlobRect} BlobRect
+ */
+
+/**
  * @typedef Point
  * @property x
  * @property y
@@ -68,6 +73,51 @@ export function rectIntersects(rect1, rect2) {
 }
 
 /**
+ * @param {Rect} rect1
+ * @param {Rect} rect2
+ * @return {boolean}
+ */
+function rectOverlapsInDirection(rect1, rect2) {
+    return (rect1.y <= rect2.y + rect2.height && rect1.y + rect1.height >= rect2.y);
+}
+
+/**
+ * @param {BlobRect} blob1
+ * @param {BlobRect} blob2
+ * @return {number}
+ */
+function blobCompare(blob1, blob2) {
+    if (rectOverlapsInDirection(blob1, blob2)) {
+        return blob1.x - blob2.x;
+    } else {
+        return blob1.y - blob2.y;
+    }
+}
+
+/**
+ * @param {BlobRect[]} blobList
+ */
+function reorderBlobList(blobList) {
+    blobList.sort((a, b) => blobCompare(a, b))
+
+    let previousBlob = blobList[0];
+    previousBlob.row = 0;
+    previousBlob.col = 0;
+
+    for (let i = 1; i < blobList; i++) {
+        const currentBlob = blobList[i];
+
+        if (rectOverlapsInDirection(currentBlob, previousBlob)) {
+            currentBlob.col = previousBlob.col + 1;
+            currentBlob.row = previousBlob.row;
+        } else {
+            currentBlob.col = 0;
+            currentBlob.row = previousBlob.row + 1;
+        }
+    }
+}
+
+/**
  * @param {BlobRect} blob1
  * @param {BlobRect} blob2
  * @returns {BlobRect}
@@ -86,38 +136,71 @@ function mergeBlobs(blob1, blob2) {
 
 
 /**
- * @param {BlobRect[]} rectList
+ * @param {BlobRect[]} blobList
  * @param {BlobRect[]} mergeList
  */
-export function mergeBlobsInlist(rectList, mergeList) {
+export function mergeBlobsInlist(blobList, mergeList) {
     let mergedRect = null;
 
-    for (let i = rectList.length-1; i >= 0; i--) {
-        const rect = rectList[i];
+    for (let i = blobList.length-1; i >= 0; i--) {
+        const rect = blobList[i];
 
-        for (let j = mergeList.length-1; j >= 0; j--) {
-            const rectToMerge = mergeList[j];
+        if (!mergeList.includes(rect)) continue;
 
-            if (rect === rectToMerge) {
-                if (!mergedRect) {
-                    mergedRect = rectToMerge
-                } else {
-                    mergedRect = mergeBlobs(mergedRect, rectToMerge);
-                }
+        if (!mergedRect) {
+            mergedRect = rect
+        } else {
+            mergedRect = mergeBlobs(mergedRect, rect);
+        }
 
-                rectList.splice(rectList.indexOf(rect), 1)
-                mergeList.splice(mergeList.indexOf(rectToMerge), 1)
+        blobList.splice(blobList.indexOf(rect), 1)
+        mergeList.splice(mergeList.indexOf(rect), 1)
 
-                if (mergeList.length === 0) {
-                    rectList.splice(i, 0, mergedRect)
-                    return;
-                }
-                break;
-            }
+        console.log("Merges remaining" + mergeList.length)
+
+        if (mergeList.length === 0) {
+            blobList.splice(i, 0, mergedRect)
         }
     }
 
+    reorderBlobList(blobList)
+
+    //console.log(rectList)
     //console.log("Merged: " + (size - rectList.length))
+}
+
+/**
+ * @param {BlobRect} blob
+ * @param {Point[]} pointsToDelete
+ * @return {number} Remaining points count
+ */
+export function removePoints(blob, pointsToDelete) {
+    // To recalculate blob dimensions
+    let x = blob.points[0].x;
+    let y = blob.points[0].y;
+    let x2 = blob.points[0].x;
+    let y2 = blob.points[0].y;
+
+    for (let i = blob.points.length-1; i >= 0; i--) {
+        const p = blob.points[i];
+
+        if (!pointsToDelete.includes(p)) {
+            x = Math.min(x, p.x);
+            y = Math.min(y, p.y);
+            x2 = Math.max(x2, p.x);
+            y2 = Math.max(y2, p.y);
+        } else {
+            blob.points.splice(i, 1) // Delete point from blob
+            pointsToDelete.splice(pointsToDelete.indexOf(p), 1) // Delete point from selected points
+        }
+    }
+
+    blob.x = x;
+    blob.y = y;
+    blob.width = x2 - x;
+    blob.height = y2 - y;
+
+    return blob.points.length;
 }
 
 /**

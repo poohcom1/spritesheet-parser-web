@@ -1,10 +1,8 @@
 package com.poohcom1.spritesheetparserweb.controllers;
 
-import com.poohcom1.spritesheetparser.cv.BlobRect;
 import com.poohcom1.spritesheetparser.cv.BlobSequence;
 import com.poohcom1.spritesheetparser.image.ImageUtil;
 import com.poohcom1.spritesheetparserweb.models.BlobModel;
-import com.poohcom1.spritesheetparserweb.models.PointModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,6 +31,15 @@ public class ImageController {
                              @RequestParam int secondaryOrder) throws IOException {
 
         BufferedImage bufferedImage = ImageIO.read(file.getInputStream());
+
+        // Convert image to ABGR if not one
+        if (bufferedImage.getType() != BufferedImage.TYPE_4BYTE_ABGR) {
+            BufferedImage convertImage = new BufferedImage(bufferedImage.getWidth(), bufferedImage.getHeight(), BufferedImage.TYPE_4BYTE_ABGR);
+            Graphics g = convertImage.getGraphics();
+            g.drawImage(bufferedImage, 0, 0, null);
+
+            bufferedImage = convertImage;
+        }
 
         if (backgroundColors.length <= 0) {
             backgroundColors = ImageUtil.findBackgroundColor(bufferedImage);

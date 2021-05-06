@@ -42,7 +42,11 @@
     <div class="control-buttons">
         <button id="mergeButton">Merge</button>
         <button id="deleteBlobButton">Delete</button>
-        <button id="removePointsButton">Remove</button>
+        <button id="removePointsButton">Remove Area</button>
+    </div>
+
+    <div class="options-radio">
+        <input id="showNumbers" type="checkbox">Show Numbering</input>
     </div>
 
     <button id="resetBlobs">Reset</button>
@@ -51,10 +55,12 @@
 <div class="container player-container">
     <h3>Sprite Player</h3>
     <canvas id="playerCanvas"></canvas>
-    <p id="frame"></p>
 
-    <script type="module" src="scripts.js"></script>
+    <button id="playButton">Play</button>
+    <button id="nextFrame">next</button>
+    <p id="frame"></p>
 </div>
 
+<script type="module" src="scripts.js"></script>
 </body>
 </html>
