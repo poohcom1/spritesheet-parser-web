@@ -1,6 +1,6 @@
 package com.poohcom1.spritesheetparserweb.controllers;
 
-import com.poohcom1.spritesheetparser.cv.Blob;
+import com.poohcom1.spritesheetparser.cv.BlobRect;
 import com.poohcom1.spritesheetparser.cv.BlobSequence;
 import com.poohcom1.spritesheetparser.image.ImageUtil;
 import com.poohcom1.spritesheetparserweb.models.BlobModel;

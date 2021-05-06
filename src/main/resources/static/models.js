@@ -47,7 +47,7 @@ export function SpritesheetData(image, name, marquees = [])  {
 
 /**
  * @param {HTMLImageElement} image
- * @param {Blob[]} blobs
+ * @param {BlobRect[]} blobs
  * @constructor
  */
 export function SpriteData(image, blobs= []) {
@@ -64,21 +64,34 @@ export function SpriteData(image, blobs= []) {
 
 /**
  * @param blob
+ */
+export function convertToBlob(blob) {
+    return new BlobRect(blob.x, blob.y, blob.width, blob.height, blob.points, blob.row, blob.col)
+}
+
+/**
+ * @param {number} x
+ * @param {number} y
+ * @param {number} width
+ * @param {number} height
+ * @param {Point[]} points
+ * @param {number} row
+ * @param {number} col
+ * @param {boolean} edited
  * @constructor
  */
-export function Blob(blob) {
-    this.x = blob.x;
-    this.y = blob.y;
-    this.width = blob.width;
-    this.height = blob.height;
+export function BlobRect(x, y, width, height, points, row, col, edited = false) {
+    this.x = x;
+    this.y = y;
+    this.width = width;
+    this.height = height;
 
-    this.row = blob.row
-    this.col = blob.col;
+    this.row = row
+    this.col = col;
 
-    this.xPadding = 0;
-    this.yPadding = 0;
+    this.points = points
 
-    this.selected = false;
+    this.edited = edited;
 }
 
 /**

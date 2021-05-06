@@ -1,41 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <link rel="stylesheet" href="styles.css" type="text/css"/>
     <title>Spritesheet Parser</title>
-  </head>
-  <body>
+</head>
+<body>
+<div class="container crop-div">
     <h2>Crop Spritesheet</h2>
     <form id="spritesheetForm">
-      <label for="spritesheetInput">Upload Spritesheet:</label>
-      <select id="spritesheetSelect">
-      </select>
-      <input type="file" id="spritesheetInput" name="img" accept="image/*"/>
+        <label for="spritesheetInput">Upload Spritesheet:</label>
+        <select id="spritesheetSelect">
+        </select>
+        <input type="file" id="spritesheetInput" name="img" accept="image/*"/>
     </form>
 
-    <canvas id="cropCanvas"> </canvas>
+    <div class="canvas-container">
+        <canvas id="cropCanvas"></canvas>
+    </div>
+
 
     <br/>
 
     <button id="cropButton">Crop Canvas</button>
+</div>
 
+
+<div class="container sprite-container">
     <h2>Extract sprites</h2>
     <form id="spriteForm">
-      <label for="spriteInput">Upload Sprite:</label>
-      <select id="spriteSelect">
-      </select>
-      <input type="file" id="spriteInput" name="img" accept="image/*" />
+        <label for="spriteInput">Upload Sprite:</label>
+        <select id="spriteSelect">
+        </select>
+        <input type="file" id="spriteInput" name="img" accept="image/*"/>
     </form>
 
     <canvas id="spriteCanvas"></canvas>
 
-    <button id="resetBlobs">Reset</button>
+    <div class="control-buttons">
+        <button id="mergeButton">Merge</button>
+        <button id="deleteBlobButton">Delete</button>
+        <button id="removePointsButton">Remove</button>
+    </div>
 
+    <button id="resetBlobs">Reset</button>
+</div>
+
+<div class="container player-container">
     <h3>Sprite Player</h3>
     <canvas id="playerCanvas"></canvas>
+    <p id="frame"></p>
 
     <script type="module" src="scripts.js"></script>
-  </body>
+</div>
+
+</body>
 </html>
