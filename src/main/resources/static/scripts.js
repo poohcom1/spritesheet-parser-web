@@ -22,6 +22,19 @@ const nextButton = document.getElementById("nextFrame")
 // Parameters
 let fps = 12;
 
+const BLOB_COLOR = "rgba(255, 0, 0, 0.5)"
+const SELECTED_BLOB_COLOR = "rgba(255, 0, 0, 0.5)"
+
+const POINT_COLOR = "rgba(0, 0, 255, 0.5)"
+
+const EDITED_BLOB_COLOR = "rgba(0,255,0, 1.0)"
+const SELECTED_EDITED_BLOB_COLOR = "rgba(0,255,0,0.5)"
+
+const TEXT_COLOR = "rgba(0, 0, 0, 1.0)"
+const TEXT_BACKGROUND = "rgba(255, 0, 0, 0.25)"
+
+const TEXT_SIZE = 20;
+
 const MERGE_KEYS = ['e', 'm'];
 const DELETE_KEYS = ['d'];
 const REMOVE_KEYS = ['r'];
@@ -290,35 +303,31 @@ function drawSpriteCanvas() {
     // Blobs
     getCurrentSprite().blobs.forEach(b => {
         ctx.beginPath();
-        ctx.strokeStyle = "rgba(255, 0, 0, 0.5)"
+        ctx.strokeStyle = b.edited ? EDITED_BLOB_COLOR : BLOB_COLOR;
         ctx.rect(b.x-0.5, b.y-0.5, b.width+2, b.height+2);
         ctx.closePath();
         ctx.stroke();
 
         if (showNumbers) {
-            let textSize = 20;
-            ctx.font = `${textSize}px Arial`;
+            ctx.font = `${TEXT_SIZE}px Arial`;
             const text = "" + (getCurrentSprite().blobs.indexOf(b) + 1);
             const size = ctx.measureText(text);
-            console.log(size)
-            ctx.fillStyle = "rgba(255, 0, 0, 0.5)"
-            ctx.fillRect(b.x + (b.width - size.width)/2 + 1,b.y + (b.height - textSize)/2 + 1, size.width+1, textSize+1)
-            ctx.fillStyle = "white"
-            ctx.fillText(text, b.x + (b.width - size.width)/2, b.y + (b.height + textSize)/2)
+            ctx.fillStyle = TEXT_BACKGROUND
+            ctx.fillRect(b.x + (b.width - size.width)/2 + 1,b.y + (b.height - TEXT_SIZE)/2 + 1, size.width+1, TEXT_SIZE+1)
+            ctx.fillStyle = TEXT_COLOR
+            ctx.fillText(text, b.x + (b.width - size.width)/2, b.y + (b.height + TEXT_SIZE)/2)
         }
     })
 
 
     // Selected blobs
     selectedBlobs.forEach(b => {
-        ctx.fillStyle = "rgba(255, 0, 0, 0.5)"
+        ctx.fillStyle = b.edited ? SELECTED_EDITED_BLOB_COLOR : SELECTED_BLOB_COLOR;
         ctx.fillRect(b.x, b.y, b.width+1, b.height+1)
-
-
     })
 
     selectedPoints.forEach(p => {
-        ctx.fillStyle = ctx.fillStyle = "rgb(0, 0, 255, 0.5)";
+        ctx.fillStyle = POINT_COLOR;
         ctx.fillRect(p.x, p.y, 1, 1)
     })
 
@@ -378,6 +387,8 @@ initUploadFileForm(spriteForm, i => {
 
 document.getElementById("resetBlobs").onclick = () => {
     getCurrentSprite().reset();
+    selectedBlobs = []
+    selectedPoints = []
     drawSpriteCanvas();
 }
 
