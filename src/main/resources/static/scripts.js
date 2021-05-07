@@ -167,13 +167,15 @@ cropCanvas.onmousedown = (e) => {
 
     if (!getSpritesheet()) return;
     mouseDown = true;
-    getSpritesheet().marquees.push(new Marquee(e.offsetX, e.offsetY))
+    const mousePos = getCanvasPos(e, cropCanvas)
+    getSpritesheet().marquees.push(new Marquee(mousePos.x, mousePos.y))
 }
 
 cropCanvas.onmousemove = (e) => {
     if (!getSpritesheet()) return;
     if (mouseDown) {
-        getSpritesheet().marquees[getSpritesheet().marquees.length-1].drag(e.offsetX, e.offsetY)
+        const mousePos = getCanvasPos(e, cropCanvas)
+        getSpritesheet().marquees[getSpritesheet().marquees.length-1].drag(mousePos.x, mousePos.y)
     }
     drawCropCanvas()
 }

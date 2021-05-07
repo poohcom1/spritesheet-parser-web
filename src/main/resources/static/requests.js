@@ -2,7 +2,7 @@
 const HOST_SERVER = "http://localhost:8080"
 
 /**
- * @param file image to crop
+ * @param {File} file image to crop
  * @param x origin x
  * @param y origin y
  * @param w width
@@ -23,11 +23,16 @@ export function sendCropRequest(file, x, y, w, h) {
     })
 }
 
-export function sendBlobDetectionRequest(file) {
+/**
+ * @param {File} file
+ * @param distance
+ * @return {Promise<Response>}
+ */
+export function sendBlobDetectionRequest(file, distance=2) {
     const formData = new FormData()
     formData.append("file", file)
     formData.append("backgroundColors", [])
-    formData.append("distance", 2)
+    formData.append("distance", distance)
     formData.append("primaryOrder", 0)
     formData.append("secondaryOrder", 1)
 
