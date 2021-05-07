@@ -110,7 +110,7 @@ onmousemove = (e) => {if (focusedElement)
  * @param {HTMLCanvasElement} canvas
  * @return {Point}
  */
-function getCanvasOffset(e, canvas) {
+function getCanvasPos(e, canvas) {
     const bounds = canvas.getBoundingClientRect();
 
     let x = e.clientX - bounds.left;
@@ -130,7 +130,6 @@ function getCanvasOffset(e, canvas) {
         y = bounds.height;
     }
 
-    console.log(selectMarquee)
     return {x: x, y: y}
 }
 
@@ -249,20 +248,24 @@ spriteCanvasImage.onmousedown = (e) => {
 
     if (!getCurrentSprite()) return;
 
+    const mousePos = getCanvasPos(e, spriteCanvasImage);
+
     mouseDown = true;
     selectedBlobs = []
     selectedPoints = []
-    selectMarquee = new Marquee(e.offsetX, e.offsetY)
+    selectMarquee = new Marquee(mousePos.x, mousePos.y)
+
+    console.log("mouse down")
 
     getCurrentSprite().blobs.forEach(b => {
-        if (rectContainsPoint(b, {x: e.offsetX, y: e.offsetY})) selectedBlobs.push(b);
+        if (rectContainsPoint(b, {x: mousePos.x, y: mousePos.y})) selectedBlobs.push(b);
     })
 }
 
 spriteCanvasImage.onmousemove = (e) => {
     if (!getCurrentSprite()) return;
     if (mouseDown) {
-        let mousePos = getCanvasOffset(e, spriteCanvasImage);
+        let mousePos = getCanvasPos(e, spriteCanvasImage);
 
         selectMarquee.drag(mousePos.x, mousePos.y)
 
@@ -271,7 +274,7 @@ spriteCanvasImage.onmousemove = (e) => {
 
         getCurrentSprite().blobs.forEach(b => {
             // Mouse in blob OR BlobRect in marquee
-            if (rectContainsPoint(b, {x: e.offsetX, y: e.offsetY}) || rectIntersects(selectMarquee, b)) {
+            if (rectContainsPoint(b, {x: mousePos.x, y: mousePos.y}) || rectIntersects(selectMarquee, b)) {
                 selectedBlobs.push(b);
 
                 // For points in marquee
@@ -289,6 +292,7 @@ spriteCanvasImage.onmousemove = (e) => {
 spriteCanvasImage.onmouseup = (e) => {
     if (!getCurrentSprite()) return;
     mouseDown = false;
+    selectMarquee = new Marquee(0, 0)
 
     //mergeBlobsInlist(getCurrentSprite().blobs, selectedBlobs)
 
