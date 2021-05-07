@@ -94,6 +94,10 @@ export function BlobRect(x, y, width, height, points, row, col, edited = false) 
     this.points = points
 
     this.edited = edited;
+
+    // Sprite drawing
+    this.xPadding = 0;
+    this.yPadding = 0;
 }
 
 /**

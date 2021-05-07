@@ -222,3 +222,56 @@ export function getMaxDimensions(rects) {
 
     return {x: minX, y:minY, width: maxX - minX, height: maxY - minY}
 }
+
+/**
+ * @param {HTMLImageElement} image
+ * @param {Rect} rect
+ * @return {string}
+ */
+export function cropImage(image, rect) {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = rect.width;
+    canvas.height = rect.height;
+
+    ctx.drawImage(image, rect.x, rect.y, rect.width, rect.height, 0, 0, rect.width, rect.height)
+
+    let file = new Blob;
+
+    canvas.toBlob(blob => file = blob, "image/png", 1.0);
+
+    return canvas.toDataURL("image/png", 1.0);
+}
+
+/**
+ * @param {HTMLImageElement} image
+ * @param {BlobRect} blob
+ * @param {Rect} dimensions
+ */
+export function cropSprite(image, blob, dimensions) {
+    const canvas = document.createElement("canvas");
+    const ctx = canvas.getContext("2d");
+
+    canvas.width = dimensions.width;
+    canvas.height = dimensions.height;
+
+    ctx.drawImage(image, blob.x, blob.y, blob.width, blob.height, blob.xPadding, blob.yPadding, blob.width, blob.height)
+
+    const outputImage = new Image;
+    outputImage.src = canvas.toDataURL()
+
+    return canvas.toDataURL();
+}
+
+/**
+ * @param {Blob} theBlob
+ * @param {string} fileName
+ * @return {File}
+ */
+export function blobToFile(theBlob, fileName){
+    //A Blob() is almost a File() - it's just missing the two properties below which we will add
+    theBlob.lastModifiedDate = new Date();
+    theBlob.name = fileName;
+    return theBlob;
+}

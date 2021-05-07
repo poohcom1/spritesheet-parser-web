@@ -57,7 +57,7 @@ public class ImageController {
     }
 
     @PostMapping("/crop")
-    public ResponseEntity<byte[]> cropImage(@RequestParam MultipartFile file,
+    public ResponseEntity<byte[]> cropSprite(@RequestParam MultipartFile file,
                                             @RequestParam int x,
                                             @RequestParam int y,
                                             @RequestParam int w,

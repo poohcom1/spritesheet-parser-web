@@ -1,13 +1,21 @@
 import {BlobRect, convertToBlob, initUploadFileForm, Marquee, SpriteData, SpritesheetData} from "./models.js";
 import {sendBlobDetectionRequest, sendCropRequest} from "./requests.js"
-import {getMaxDimensions, mergeBlobsInlist, rectContainsPoint, rectIntersects, removePoints} from "./utils.js";
+import {
+    cropImage,
+    cropSprite,
+    getMaxDimensions,
+    mergeBlobsInlist,
+    rectContainsPoint,
+    rectIntersects,
+    removePoints
+} from "./utils.js";
 
 // DOMs
 const spritesheetForm = document.getElementById("spritesheetForm")
 const spriteForm = document.getElementById("spriteForm")
 
 const cropCanvas = document.getElementById("cropCanvas")
-const spriteCanvas = document.getElementById("spriteCanvas")
+const spriteCanvasImage = document.getElementById("spriteCanvas")
 const playerCanvas = document.getElementById("playerCanvas")
 
 const mergeBlobButton = document.getElementById("mergeButton")
@@ -18,6 +26,8 @@ const showNumberCheckbox = document.getElementById("showNumbers")
 
 const playButton = document.getElementById("playButton")
 const nextButton = document.getElementById("nextFrame")
+
+const downloadButton = document.getElementById("downloadSpriteButton")
 
 // Parameters
 let fps = 12;
@@ -54,13 +64,14 @@ let dimensions = {width: 0, height: 0} // Dimensions of current sprite for the s
 let showBlobs = true;
 let showNumbers = false;
 
+let focusedElement = null;
+
 /**
  * @type {{string: boolean}}
  */
 let keys = {}
 
 // =============================== GENERAL EVENTS ======================================
-
 onmouseup = () => {
     mouseDown = false
     selectMarquee = new Marquee(0, 0)
@@ -87,6 +98,42 @@ onkeyup = (e) => {
     keys[e.key] = false;
 }
 
+
+onmouseup = (e) =>  {if (focusedElement)
+    focusedElement.onmouseup(e)
+}
+onmousemove = (e) => {if (focusedElement)
+    focusedElement.onmousemove(e)
+}
+/**
+ * @param {MouseEvent} e
+ * @param {HTMLCanvasElement} canvas
+ * @return {Point}
+ */
+function getCanvasOffset(e, canvas) {
+    const bounds = canvas.getBoundingClientRect();
+
+    let x = e.clientX - bounds.left;
+    let y = e.clientY - bounds.top;
+
+    if (e.pageX < bounds.left + window.scrollX) {
+        x = 0;
+    }
+    if (e.pageX > bounds.right + window.scrollX) {
+        x = bounds.width;
+    }
+
+    if (e.pageY < bounds.top + window.scrollY) {
+        y = 0;
+    }
+    if (e.pageY > bounds.bottom + window.scrollY) {
+        y = bounds.height;
+    }
+
+    console.log(selectMarquee)
+    return {x: x, y: y}
+}
+
 // ================================ SPRITESHEET CROPPING ================================
 
 function drawCropCanvas() {
@@ -110,8 +157,15 @@ function drawCropCanvas() {
 }
 
 // Crop canvas setup
+cropCanvas.onmouseenter = (e) => {
+    if (mouseDown) {
+        focusedElement = cropCanvas;
+    }
+}
 
 cropCanvas.onmousedown = (e) => {
+    focusedElement = cropCanvas;
+
     if (!getSpritesheet()) return;
     mouseDown = true;
     getSpritesheet().marquees.push(new Marquee(e.offsetX, e.offsetY))
@@ -154,25 +208,19 @@ initUploadFileForm(spritesheetForm, i => {
 document.getElementById("cropButton").onclick = () => {
     const spritesheet = getSpritesheet();
 
-    spritesheet.marquees.forEach(m => {
-        // Convert url to file
-        fetch(spritesheet.image.src).then(response => response.blob()).then(file => {
-            // POST Request to crop all images in marquees
-            sendCropRequest(file, m.x, m.y, m.width, m.height)
-                .then(response => response.blob())
-                .then(file => {
-                    const image = new Image
-                    image.src = URL.createObjectURL(file)
+    spritesheet.marquees.forEach(marquee => {
+        const image = new Image
+        image.src = cropImage(spritesheet.image, marquee);
+        // Name image with index
+        const name = spritesheet.name + " #" + spritesheet.spriteCount++;
 
-                    // Name image with index
-                    const name = spritesheet.name + " #" + spritesheet.spriteCount++;
+        fetch(image.src).then(response => response.blob()).then(file => addSprite(image, file, name))
 
-                    // Add to sprites
-                    addSprite(image, file, name);
-                })
-        })
+        // Add to sprites
+        ;
     })
 
+    // Remove all crop marquee
     spritesheet.marquees.splice(0, spritesheet.marquees.length)
     // Update the marquee removal
     drawCropCanvas();
@@ -187,20 +235,20 @@ let selectedPoints = []
 
 
 // BLOB CANVAS ACTIONS
-spriteCanvas.onmouseenter = (e) => {
+spriteCanvasImage.onmouseenter = (e) => {
     if (!getCurrentSprite()) return;
-    if (e.buttons !== 1) {
+    if (mouseDown) {
+        focusedElement = spriteCanvasImage;
+    } else {
         selectMarquee = null
-        mouseDown = false
-    }
-    if (e.buttons === 1) {
-        mouseDown = true;
-        selectMarquee = new Marquee(e.offsetX, e.offsetY)
     }
 }
 
-spriteCanvas.onmousedown = (e) => {
+spriteCanvasImage.onmousedown = (e) => {
+    focusedElement = spriteCanvasImage;
+
     if (!getCurrentSprite()) return;
+
     mouseDown = true;
     selectedBlobs = []
     selectedPoints = []
@@ -211,10 +259,12 @@ spriteCanvas.onmousedown = (e) => {
     })
 }
 
-spriteCanvas.onmousemove = (e) => {
+spriteCanvasImage.onmousemove = (e) => {
     if (!getCurrentSprite()) return;
     if (mouseDown) {
-        selectMarquee.drag(e.offsetX, e.offsetY)
+        let mousePos = getCanvasOffset(e, spriteCanvasImage);
+
+        selectMarquee.drag(mousePos.x, mousePos.y)
 
         selectedBlobs = []
         selectedPoints = []
@@ -234,10 +284,9 @@ spriteCanvas.onmousemove = (e) => {
 
         drawSpriteCanvas()
     }
-
 }
 
-spriteCanvas.onmouseup = (e) => {
+spriteCanvasImage.onmouseup = (e) => {
     if (!getCurrentSprite()) return;
     mouseDown = false;
 
@@ -288,17 +337,20 @@ function getCurrentSprite() {
 /**
  * Draws the sprite canvas based on current state
  */
+
+const PADDING = 0;
+
 function drawSpriteCanvas() {
     if (sprites.length === 0) return;
 
-    const ctx = spriteCanvas.getContext("2d");
+    const ctx = spriteCanvasImage.getContext("2d");
 
     ctx.save();
 
-    spriteCanvas.width = getCurrentSprite().image.width;
-    spriteCanvas.height = getCurrentSprite().image.height;
+    spriteCanvasImage.width = getCurrentSprite().image.width;
+    spriteCanvasImage.height = getCurrentSprite().image.height;
 
-    ctx.drawImage(getCurrentSprite().image, 0, 0)
+    ctx.drawImage(getCurrentSprite().image, PADDING, PADDING)
 
     // Blobs
     getCurrentSprite().blobs.forEach(b => {
@@ -380,8 +432,8 @@ function addSpriteFromFile(image, file, index) {
 initUploadFileForm(spriteForm, i => {
     spriteIndex = i;
     dimensions = getMaxDimensions(getCurrentSprite().blobs)
-    spriteCanvas.width = dimensions.width;
-    spriteCanvas.height = dimensions.height;
+    spriteCanvasImage.width = dimensions.width;
+    spriteCanvasImage.height = dimensions.height;
     drawSpriteCanvas();
 }, addSpriteFromFile)
 
@@ -391,7 +443,6 @@ document.getElementById("resetBlobs").onclick = () => {
     selectedPoints = []
     drawSpriteCanvas();
 }
-
 
 
 // ========================================== SPRITE PLAYER ==============================================
@@ -434,4 +485,12 @@ playButton.onclick = () => {
 
 nextButton.onclick = () => {
     drawPlayerCanvas()
+}
+
+// ================================== DOWNLOAD =====================================
+downloadButton.onclick = () => {
+    const a = document.createElement("a");
+    a.href = cropSprite(getCurrentSprite().image, getCurrentSprite().blobs[0], getMaxDimensions(getCurrentSprite().blobs));
+    a.download = "test.png"
+    a.click()
 }
