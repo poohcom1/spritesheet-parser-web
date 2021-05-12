@@ -11,6 +11,13 @@
                     <name>JBoss Public Maven Repository Group</name>
                     <url>http://repository.jboss.org/nexus/content/groups/public/</url>
                 </repository>
+                <repository>
+                    <id>github</id>
+                    <url>https://maven.pkg.github.com/poohcom1/*</url>
+                    <snapshots>
+                        <enabled>true</enabled>
+                    </snapshots>
+                </repository>
             </repositories>
         </profile>
     </profiles>
