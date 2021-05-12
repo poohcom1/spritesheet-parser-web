@@ -18,6 +18,9 @@ jobs:
         with:
           java-version: 1.11
       - name: Maven Package
+        env:
+          GITHUB_ACTOR: ${{ secrets.GITHUB_ACTOR }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: mvn -B clean package -DskipTests
       - name: Maven Verify
         run: mvn -B clean verify
