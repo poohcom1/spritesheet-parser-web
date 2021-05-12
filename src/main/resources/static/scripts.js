@@ -1,4 +1,4 @@
-import {convertToBlob, initUploadFileForm, Marquee, SpriteData, SpritesheetData} from "./models.js";
+import {convertToBlob, convertToBlobArray, initUploadFileForm, Marquee, SpriteData, SpritesheetData} from "./models.js";
 import {sendBlobDetectionRequest} from "./requests.js"
 import {
     cropImage,
@@ -30,6 +30,10 @@ const CANVASES = {
 }
 
 Object.keys(CANVASES).forEach(k => CANVASES[k].scale = 1.0)
+
+// Blob buttons
+const thresholdUp = document.getElementById("thresholdUp")
+const thresholdDown = document.getElementById("thresholdDown")
 
 const mergeBlobButton = document.getElementById("mergeButton")
 const deleteBlobButton = document.getElementById("deleteBlobButton")
@@ -66,12 +70,15 @@ const MERGE_KEYS = ['e', 'm'];
 const DELETE_KEYS = ['d'];
 const REMOVE_KEYS = ['r'];
 
-const ZOOM_PAN_KEYS = ['Shift'];
+const ZOOM_PAN_KEYS = ['Control'];
+const MULTIPLE_MARQUEE_KEYS = ["Shift"]
 
 // Data
+/** @type SpritesheetData[] */
 const spritesheets = []
 let spritesheetIndex = 0
 
+/** @type SpriteData[] */
 const sprites = []
 let spriteIndex = 0;
 
@@ -83,21 +90,13 @@ let dimensions = {width: 0, height: 0} // Dimensions of current sprite for the s
 let showBlobs = true;
 let showNumbers = false;
 
+/** @type HTMLCanvasElement */
 let focusedCanvas = CANVASES.CROP;
 
-/**
- * @type {{string: boolean}}
- */
+/** @type {{string: boolean}} */
 let keys = {}
 
 // =============================== GENERAL EVENTS ======================================
-onmouseup = () => {
-    mouseDown = false
-    selectMarquee = new Marquee(0, 0)
-    drawCropCanvas();
-    drawSpriteCanvas();
-}
-
 onkeydown = (e) => {
     keys = {}
     keys[e.key] = true;
@@ -118,21 +117,27 @@ onkeyup = (e) => {
 }
 
 onmouseup = (e) =>  {
+    mouseDown = false
+    selectMarquee = new Marquee(0, 0)
+    drawCropCanvas();
+    drawSpriteCanvas();
     focusedCanvas.onmouseup(e)
 }
 onmousemove = (e) => {
     focusedCanvas.onmousemove(e)
 }
 
+onmousedown = () => console.log("Down")
 
 addEventListener("mousewheel", (e) => {
+    console.log(keys[ZOOM_PAN_KEYS])
     if (keys[ZOOM_PAN_KEYS]) {
         if (e.deltaY < 0) {
-            //e.preventDefault();
+            e.preventDefault();
             focusedCanvas.scale *= ZOOM_AMOUNT;
             focusedCanvas.draw();
         } else if (e.deltaY > 0) {
-            //e.preventDefault();
+            e.preventDefault();
             focusedCanvas.scale /= ZOOM_AMOUNT;
             focusedCanvas.draw();
         }
@@ -178,7 +183,6 @@ function scaleCanvas(canvas, width, height) {
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
 
-    console.log(canvas.scale)
 
     canvas.width = width;
     canvas.height = height;
@@ -195,10 +199,8 @@ function drawCropCanvas() {
     const spritesheetData = spritesheets[spritesheetIndex]
 
     const ctx = CANVASES.CROP.getContext('2d')
-    CANVASES.CROP.width = spritesheetData.image.width;
-    CANVASES.CROP.height = spritesheetData.image.height;
 
-    ctx.scale(CANVASES.CROP.scale, CANVASES.CROP.scale);
+    scaleCanvas(CANVASES.CROP, spritesheetData.image.width, spritesheetData.image.height);
 
     ctx.clearRect(0, 0, CANVASES.CROP.width, CANVASES.CROP.height)
 
@@ -206,7 +208,8 @@ function drawCropCanvas() {
 
     spritesheetData.marquees.forEach(m => {
         ctx.beginPath()
-        ctx.rect(m.x, m.y, m.width, m.height)
+        ctx.lineWidth = 1;
+        ctx.rect(0.5 + m.x, 0.5 + m.y, m.width, m.height)
         ctx.stroke()
     })
 }
@@ -215,9 +218,7 @@ CANVASES.CROP.draw = drawCropCanvas;
 
 // Crop canvas setup
 CANVASES.CROP.onmouseenter = () => {
-    if (mouseDown) {
-        focusedCanvas = CANVASES.CROP;
-    }
+    focusedCanvas = CANVASES.CROP;
 }
 
 CANVASES.CROP.onmousedown = (e) => {
@@ -226,6 +227,10 @@ CANVASES.CROP.onmousedown = (e) => {
     if (!getSpritesheet()) return;
 
     if (e.buttons === 1) {
+        if (!keys[MULTIPLE_MARQUEE_KEYS]) {
+            getSpritesheet().marquees = []
+        }
+
         mouseDown = true;
         const mousePos = getCanvasPos(e, CANVASES.CROP)
         getSpritesheet().marquees.push(new Marquee(mousePos.x, mousePos.y))
@@ -299,9 +304,8 @@ let selectedPoints = []
 // BLOB CANVAS ACTIONS
 CANVASES.SPRITE.onmouseenter = () => {
     if (!getCurrentSprite()) return;
-    if (mouseDown) {
-        focusedCanvas = CANVASES.SPRITE;
-    } else {
+    focusedCanvas = CANVASES.SPRITE;
+    if (!mouseDown) {
         selectMarquee = null
     }
 }
@@ -318,8 +322,6 @@ CANVASES.SPRITE.onmousedown = (e) => {
         selectedBlobs = []
         selectedPoints = []
         selectMarquee = new Marquee(mousePos.x, mousePos.y)
-
-        console.log("mouse down")
 
         getCurrentSprite().blobs.forEach(b => {
             if (rectContainsPoint(b, {x: mousePos.x, y: mousePos.y})) selectedBlobs.push(b);
@@ -362,6 +364,31 @@ CANVASES.SPRITE.onmouseup = () => {
     //mergeBlobsInlist(getCurrentSprite().blobs, selectedBlobs)
 
     drawSpriteCanvas()
+}
+
+// BLOB DETECTION BUTTONS
+thresholdUp.onclick = () => {
+    if (getCurrentSprite().blobs.length <= 2) return;
+
+    getCurrentSprite().threshold++;
+    sendBlobDetectionRequest(getCurrentSprite().file, getCurrentSprite().threshold)
+        .then((response) => response.json())
+        .then(data => {
+            getCurrentSprite().updateBlobs(convertToBlobArray(data))
+            drawSpriteCanvas();
+        })
+}
+
+thresholdDown.onclick = () => {
+    if (getCurrentSprite().threshold <= 2) return;
+
+    getCurrentSprite().threshold--;
+    sendBlobDetectionRequest(getCurrentSprite().file, getCurrentSprite().threshold)
+        .then((response) => response.json())
+        .then(data => {
+            getCurrentSprite().updateBlobs(convertToBlobArray(data))
+            drawSpriteCanvas();
+        })
 }
 
 // BLOB CANVAS BUTTONS
@@ -421,6 +448,7 @@ function drawSpriteCanvas() {
     ctx.drawImage(getCurrentSprite().image, 0, 0)
 
     // Blobs
+    if (showBlobs)
     getCurrentSprite().blobs.forEach(b => {
         ctx.beginPath();
         ctx.strokeStyle = b.edited ? EDITED_BLOB_COLOR : BLOB_COLOR;
@@ -454,10 +482,10 @@ function drawSpriteCanvas() {
     // Draw marquee
     if (selectMarquee) {
         const m = new Path2D();
-        const x = Math.floor(selectMarquee.x)
-        const y = Math.floor(selectMarquee.y)
-        const w = Math.ceil(selectMarquee.width)
-        const h = Math.ceil(selectMarquee.height)
+        const x = selectMarquee.x;
+        const y = selectMarquee.y;
+        const w = selectMarquee.width;
+        const h = selectMarquee.height;
 
 
         m.rect(x, y, w, h)
@@ -480,7 +508,7 @@ function addSprite(image, file, name) {
     sendBlobDetectionRequest(file)
         .then(response => response.json())
         .then(data => {
-            sprites.push(new SpriteData(image, data.map(rect => convertToBlob(rect))))
+            sprites.push(new SpriteData(image, file, data.map(rect => convertToBlob(rect))))
 
             const option = document.createElement("option")
 
@@ -497,7 +525,7 @@ function addSpriteFromFile(image, file, index) {
     sendBlobDetectionRequest(file)
         .then(response => response.json())
         .then(data => {
-            sprites.push(new SpriteData(image, data.map(rect => convertToBlob(rect))))
+            sprites.push(new SpriteData(image, file, data.map(rect => convertToBlob(rect))))
 
             spriteIndex = index;
 

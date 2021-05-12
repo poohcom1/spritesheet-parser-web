@@ -1,3 +1,5 @@
+import {rectContainsRect, rectIntersects} from "./utils.js";
+
 export class Marquee {
     #anchorX
     #anchorY
@@ -5,13 +7,13 @@ export class Marquee {
     #subY
 
     constructor(anchorX, anchorY) {
-        this.#anchorX = anchorX;
-        this.#anchorY = anchorY
+        this.#anchorX = Math.floor(anchorX);
+        this.#anchorY = Math.floor(anchorY)
     }
 
     drag(x, y) {
-        this.#subX = x;
-        this.#subY = y;
+        this.#subX = Math.floor(x);
+        this.#subY = Math.floor(y);
     }
 
     get x() {
@@ -47,28 +49,86 @@ export function SpritesheetData(image, name, marquees = [])  {
 
 /**
  * @param {HTMLImageElement} image
+ * @param {File} file
  * @param {BlobRect[]} blobs
  * @constructor
  */
-export function SpriteData(image, blobs= []) {
+export function SpriteData(image, file, blobs= []) {
     blobs = blobs.filter(b => b.points.length !== 0)
 
     this.image = image;
+    this.file = file;
+
     this.blobs = blobs;
-    const originalBlobs = JSON.parse(JSON.stringify(blobs))
+    let originalBlobs = JSON.parse(JSON.stringify(blobs))
+
+    this.threshold = 2;
 
     this.reset = () => {
         this.blobs = JSON.parse(JSON.stringify(originalBlobs))
     }
+
+    /** @param {BlobRect[]} newBlobs */
+    this.updateBlobs = (newBlobs) => {
+
+        const editedBlobs = this.blobs.filter(blob => blob.edited)
+
+        console.log(editedBlobs)
+
+        this.blobs = [];
+
+        for (let i = 0; i < newBlobs.length; i++) {
+            let intersectsEditedBlob = false;
+
+            for (let j = 0; j < editedBlobs.length; j++) {
+                const editedBlob = editedBlobs[j];
+
+                if (rectIntersects(newBlobs[i], editedBlob)) {
+                    intersectsEditedBlob = true;
+
+                    console.log("Intersect!")
+
+                    if (this.blobs.indexOf(editedBlob) === -1) {
+                        this.blobs.push(editedBlob);
+                    }
+                    break;
+                }
+            }
+
+            if (!intersectsEditedBlob) {
+                this.blobs.push(newBlobs[i])
+            }
+        }
+
+        originalBlobs = JSON.parse(JSON.stringify(newBlobs));
+    }
 }
 
-
+/**
+ * @typedef DetectedBlob
+ * @property x
+ * @property y
+ * @property width
+ * @property height
+ * @property points
+ * @property row
+ * @property col
+ */
 
 /**
- * @param blob
+ * @param {DetectedBlob} blob
+ * @return {BlobRect}
  */
 export function convertToBlob(blob) {
     return new BlobRect(blob.x, blob.y, blob.width, blob.height, blob.points, blob.row, blob.col)
+}
+
+/**
+ * @param {DetectedBlob[]} blobs
+ * @return {BlobRect[]}
+ */
+export function convertToBlobArray(blobs) {
+    return blobs.map(blob => convertToBlob(blob));
 }
 
 /**

@@ -97,7 +97,7 @@ function blobCompare(blob1, blob2) {
 /**
  * @param {BlobRect[]} blobList
  */
-function reorderBlobList(blobList) {
+function orderBlobList(blobList) {
     blobList.sort((a, b) => blobCompare(a, b))
 
     let previousBlob = blobList[0];
@@ -136,6 +136,7 @@ function mergeBlobs(blob1, blob2) {
 
 
 /**
+ * Automatically merge overlapping blobs, and orders the blobs
  * @param {BlobRect[]} blobList
  * @param {BlobRect[]} mergeList
  */
@@ -156,14 +157,14 @@ export function mergeBlobsInlist(blobList, mergeList) {
         blobList.splice(blobList.indexOf(rect), 1)
         mergeList.splice(mergeList.indexOf(rect), 1)
 
-        console.log("Merges remaining" + mergeList.length)
+        //console.log("Merges remaining" + mergeList.length)
 
         if (mergeList.length === 0) {
             blobList.splice(i, 0, mergedRect)
         }
     }
 
-    reorderBlobList(blobList)
+    orderBlobList(blobList)
 
     //console.log(rectList)
     //console.log("Merged: " + (size - rectList.length))

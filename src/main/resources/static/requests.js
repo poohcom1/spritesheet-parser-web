@@ -32,9 +32,9 @@ export function sendBlobDetectionRequest(file, distance=2) {
     const formData = new FormData()
     formData.append("file", file)
     formData.append("backgroundColors", [])
-    formData.append("distance", distance)
-    formData.append("primaryOrder", 0)
-    formData.append("secondaryOrder", 1)
+    formData.append("distance", distance + "")
+    formData.append("primaryOrder", 0 + "")
+    formData.append("secondaryOrder", 1 + "")
 
     return fetch(HOST_SERVER + "/spritesheet", {
         method: "POST",
