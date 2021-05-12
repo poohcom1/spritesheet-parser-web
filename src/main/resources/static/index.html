@@ -4,7 +4,7 @@
     <meta charset="UTF-8"/>
     <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-    <link rel="stylesheet" href="styles.css" type="text/css"/>
+    <link href="styles.css" rel="stylesheet" type="text/css"/>
     <title>Spritesheet Parser</title>
 </head>
 <body>
@@ -22,7 +22,7 @@
     </div>
 
     <br/>
-    <button id="cropButton">Crop Canvas</button>
+    <button class="btn btn-primary" id="cropButton">Crop Canvas</button>
 </div>
 
 
@@ -36,8 +36,8 @@
     </form>
 
     <div class="blob-button sprite-container">
-        <button id="thresholdUp">Increase Blob Sizes</button>
-        <button id="thresholdDown">Decrease Blob Sizes</button>
+        <button class="btn btn-primary"  id="thresholdUp">Increase Blob Sizes</button>
+        <button class="btn btn-primary"  id="thresholdDown">Decrease Blob Sizes</button>
     </div>
 
     <div class="canvas-container">
@@ -45,9 +45,9 @@
     </div>
 
     <div class="control-buttons">
-        <button id="mergeButton">Merge</button>
-        <button id="deleteBlobButton">Delete</button>
-        <button id="removePointsButton">Remove Area</button>
+        <button class="btn btn-secondary" id="mergeButton">Merge</button>
+        <button class="btn btn-secondary" id="deleteBlobButton">Delete</button>
+        <button class="btn btn-secondary" iid="removePointsButton">Remove Area</button>
     </div>
 
     <div class="options-radio">
@@ -63,15 +63,16 @@
         <canvas id="playerCanvas"></canvas>
     </div>
 
-    <button id="playButton">Play</button>
-    <button id="nextFrame">next</button>
+    <button class="btn btn-primary" id="playButton">Play</button>
+    <button class="btn btn-primary" id="nextFrame">next</button>
     <p id="frame"></p>
 </div>
 
 <div class="container download-container">
-    <button id="downloadSpriteButton">Download</button>
+    <button class="btn btn-primary" id="downloadSpriteButton">Download</button>
 </div>
 
 <script type="module" src="scripts.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0/dist/js/bootstrap.bundle.min.js" integrity="sha384-p34f1UUtsS3wqzfto5wAAmdvj+osOnFyQFpp4Ua3gs/ZVWx6oOypYoCJhGGScy+8" crossorigin="anonymous"></script>
 </body>
 </html>
