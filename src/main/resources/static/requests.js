@@ -1,5 +1,5 @@
 // Config
-const HOST_SERVER = "http://localhost:8080"
+const HOST_SERVER = ""
 
 /**
  * @param {File} file image to crop
