@@ -1,10 +1,9 @@
-name: Feature Branch
+name: CI Test
 
 on:
   push:
-    branches-ignore:
+    branches:
       - 'master'
-      - 'release*'
 
 jobs:
 
