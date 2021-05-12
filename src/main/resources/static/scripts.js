@@ -1,5 +1,5 @@
-import {BlobRect, convertToBlob, initUploadFileForm, Marquee, SpriteData, SpritesheetData} from "./models.js";
-import {sendBlobDetectionRequest, sendCropRequest} from "./requests.js"
+import {convertToBlob, initUploadFileForm, Marquee, SpriteData, SpritesheetData} from "./models.js";
+import {sendBlobDetectionRequest} from "./requests.js"
 import {
     cropImage,
     cropSprite,
@@ -14,9 +14,22 @@ import {
 const spritesheetForm = document.getElementById("spritesheetForm")
 const spriteForm = document.getElementById("spriteForm")
 
-const cropCanvas = document.getElementById("cropCanvas")
-const spriteCanvasImage = document.getElementById("spriteCanvas")
-const playerCanvas = document.getElementById("playerCanvas")
+/**
+ * @typedef {HTMLCanvasElement & Object} HTMLCanvasElement
+ * @property {number} scale
+ * @property {Function} draw
+ */
+
+/**
+ * @type {{PLAYER: HTMLCanvasElement, SPRITE: HTMLCanvasElement, CROP: HTMLCanvasElement}}
+ */
+const CANVASES = {
+    CROP: document.getElementById("cropCanvas"),
+    SPRITE: document.getElementById("spriteCanvas"),
+    PLAYER: document.getElementById("playerCanvas"),
+}
+
+Object.keys(CANVASES).forEach(k => CANVASES[k].scale = 1.0)
 
 const mergeBlobButton = document.getElementById("mergeButton")
 const deleteBlobButton = document.getElementById("deleteBlobButton")
@@ -43,11 +56,17 @@ const SELECTED_EDITED_BLOB_COLOR = "rgba(0,255,0,0.5)"
 const TEXT_COLOR = "rgba(0, 0, 0, 1.0)"
 const TEXT_BACKGROUND = "rgba(255, 0, 0, 0.25)"
 
+const CANVAS_BACKGROUND = "rgb(109,109,109)"
+
 const TEXT_SIZE = 20;
+
+const ZOOM_AMOUNT = 2;
 
 const MERGE_KEYS = ['e', 'm'];
 const DELETE_KEYS = ['d'];
 const REMOVE_KEYS = ['r'];
+
+const ZOOM_PAN_KEYS = ['Shift'];
 
 // Data
 const spritesheets = []
@@ -64,7 +83,7 @@ let dimensions = {width: 0, height: 0} // Dimensions of current sprite for the s
 let showBlobs = true;
 let showNumbers = false;
 
-let focusedElement = null;
+let focusedCanvas = CANVASES.CROP;
 
 /**
  * @type {{string: boolean}}
@@ -98,13 +117,28 @@ onkeyup = (e) => {
     keys[e.key] = false;
 }
 
+onmouseup = (e) =>  {
+    focusedCanvas.onmouseup(e)
+}
+onmousemove = (e) => {
+    focusedCanvas.onmousemove(e)
+}
 
-onmouseup = (e) =>  {if (focusedElement)
-    focusedElement.onmouseup(e)
-}
-onmousemove = (e) => {if (focusedElement)
-    focusedElement.onmousemove(e)
-}
+
+addEventListener("mousewheel", (e) => {
+    if (keys[ZOOM_PAN_KEYS]) {
+        if (e.deltaY < 0) {
+            //e.preventDefault();
+            focusedCanvas.scale *= ZOOM_AMOUNT;
+            focusedCanvas.draw();
+        } else if (e.deltaY > 0) {
+            //e.preventDefault();
+            focusedCanvas.scale /= ZOOM_AMOUNT;
+            focusedCanvas.draw();
+        }
+    }
+}, {passive: false})
+
 /**
  * @param {MouseEvent} e
  * @param {HTMLCanvasElement} canvas
@@ -130,7 +164,27 @@ function getCanvasPos(e, canvas) {
         y = bounds.height;
     }
 
-    return {x: x, y: y}
+    return {x: x/focusedCanvas.scale, y: y/focusedCanvas.scale}
+}
+
+/**
+ * @param {HTMLCanvasElement} canvas
+ * @param width
+ * @param height
+ */
+function scaleCanvas(canvas, width, height) {
+    const ctx = canvas.getContext('2d')
+
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = "high";
+
+    console.log(canvas.scale)
+
+    canvas.width = width;
+    canvas.height = height;
+
+    canvas.style.width = width * canvas.scale + "px";
+    canvas.style.height = height * canvas.scale + "px";
 }
 
 // ================================ SPRITESHEET CROPPING ================================
@@ -140,11 +194,13 @@ function drawCropCanvas() {
 
     const spritesheetData = spritesheets[spritesheetIndex]
 
-    const ctx = cropCanvas.getContext('2d')
-    cropCanvas.width = spritesheetData.image.width;
-    cropCanvas.height = spritesheetData.image.height;
+    const ctx = CANVASES.CROP.getContext('2d')
+    CANVASES.CROP.width = spritesheetData.image.width;
+    CANVASES.CROP.height = spritesheetData.image.height;
 
-    ctx.clearRect(0, 0, cropCanvas.width, cropCanvas.height)
+    ctx.scale(CANVASES.CROP.scale, CANVASES.CROP.scale);
+
+    ctx.clearRect(0, 0, CANVASES.CROP.width, CANVASES.CROP.height)
 
     ctx.drawImage(spritesheetData.image, 0, 0)
 
@@ -155,32 +211,37 @@ function drawCropCanvas() {
     })
 }
 
+CANVASES.CROP.draw = drawCropCanvas;
+
 // Crop canvas setup
-cropCanvas.onmouseenter = (e) => {
+CANVASES.CROP.onmouseenter = () => {
     if (mouseDown) {
-        focusedElement = cropCanvas;
+        focusedCanvas = CANVASES.CROP;
     }
 }
 
-cropCanvas.onmousedown = (e) => {
-    focusedElement = cropCanvas;
+CANVASES.CROP.onmousedown = (e) => {
+    focusedCanvas = CANVASES.CROP;
 
     if (!getSpritesheet()) return;
-    mouseDown = true;
-    const mousePos = getCanvasPos(e, cropCanvas)
-    getSpritesheet().marquees.push(new Marquee(mousePos.x, mousePos.y))
+
+    if (e.buttons === 1) {
+        mouseDown = true;
+        const mousePos = getCanvasPos(e, CANVASES.CROP)
+        getSpritesheet().marquees.push(new Marquee(mousePos.x, mousePos.y))
+    }
 }
 
-cropCanvas.onmousemove = (e) => {
+CANVASES.CROP.onmousemove = (e) => {
     if (!getSpritesheet()) return;
     if (mouseDown) {
-        const mousePos = getCanvasPos(e, cropCanvas)
+        const mousePos = getCanvasPos(e, CANVASES.CROP)
         getSpritesheet().marquees[getSpritesheet().marquees.length-1].drag(mousePos.x, mousePos.y)
     }
     drawCropCanvas()
 }
 
-cropCanvas.onmouseup = (e) => {
+CANVASES.CROP.onmouseup = () => {
     if (!getSpritesheet()) return;
     mouseDown = false;
 }
@@ -236,38 +297,40 @@ let selectedPoints = []
 
 
 // BLOB CANVAS ACTIONS
-spriteCanvasImage.onmouseenter = (e) => {
+CANVASES.SPRITE.onmouseenter = () => {
     if (!getCurrentSprite()) return;
     if (mouseDown) {
-        focusedElement = spriteCanvasImage;
+        focusedCanvas = CANVASES.SPRITE;
     } else {
         selectMarquee = null
     }
 }
 
-spriteCanvasImage.onmousedown = (e) => {
-    focusedElement = spriteCanvasImage;
+CANVASES.SPRITE.onmousedown = (e) => {
+    focusedCanvas = CANVASES.SPRITE;
 
     if (!getCurrentSprite()) return;
 
-    const mousePos = getCanvasPos(e, spriteCanvasImage);
+    const mousePos = getCanvasPos(e, CANVASES.SPRITE);
 
-    mouseDown = true;
-    selectedBlobs = []
-    selectedPoints = []
-    selectMarquee = new Marquee(mousePos.x, mousePos.y)
+    if (e.buttons === 1) {
+        mouseDown = true;
+        selectedBlobs = []
+        selectedPoints = []
+        selectMarquee = new Marquee(mousePos.x, mousePos.y)
 
-    console.log("mouse down")
+        console.log("mouse down")
 
-    getCurrentSprite().blobs.forEach(b => {
-        if (rectContainsPoint(b, {x: mousePos.x, y: mousePos.y})) selectedBlobs.push(b);
-    })
+        getCurrentSprite().blobs.forEach(b => {
+            if (rectContainsPoint(b, {x: mousePos.x, y: mousePos.y})) selectedBlobs.push(b);
+        })
+    }
 }
 
-spriteCanvasImage.onmousemove = (e) => {
+CANVASES.SPRITE.onmousemove = (e) => {
     if (!getCurrentSprite()) return;
     if (mouseDown) {
-        let mousePos = getCanvasPos(e, spriteCanvasImage);
+        let mousePos = getCanvasPos(e, CANVASES.SPRITE);
 
         selectMarquee.drag(mousePos.x, mousePos.y)
 
@@ -291,7 +354,7 @@ spriteCanvasImage.onmousemove = (e) => {
     }
 }
 
-spriteCanvasImage.onmouseup = (e) => {
+CANVASES.SPRITE.onmouseup = () => {
     if (!getCurrentSprite()) return;
     mouseDown = false;
     selectMarquee = new Marquee(0, 0)
@@ -344,19 +407,18 @@ function getCurrentSprite() {
  * Draws the sprite canvas based on current state
  */
 
-const PADDING = 0;
 
 function drawSpriteCanvas() {
     if (sprites.length === 0) return;
 
-    const ctx = spriteCanvasImage.getContext("2d");
+    const ctx = CANVASES.SPRITE.getContext("2d");
 
-    ctx.save();
+    scaleCanvas(CANVASES.SPRITE, getCurrentSprite().image.width, getCurrentSprite().image.height)
 
-    spriteCanvasImage.width = getCurrentSprite().image.width;
-    spriteCanvasImage.height = getCurrentSprite().image.height;
+    ctx.fillStyle = CANVAS_BACKGROUND;
+    ctx.fillRect(0, 0, CANVASES.SPRITE.width, CANVASES.SPRITE.height)
 
-    ctx.drawImage(getCurrentSprite().image, PADDING, PADDING)
+    ctx.drawImage(getCurrentSprite().image, 0, 0)
 
     // Blobs
     getCurrentSprite().blobs.forEach(b => {
@@ -392,14 +454,22 @@ function drawSpriteCanvas() {
     // Draw marquee
     if (selectMarquee) {
         const m = new Path2D();
-        m.rect(selectMarquee.x, selectMarquee.y, selectMarquee.width, selectMarquee.height)
-        m.rect(selectMarquee.x+1, selectMarquee.y+1, selectMarquee.width-2, selectMarquee.height-2)
+        const x = Math.floor(selectMarquee.x)
+        const y = Math.floor(selectMarquee.y)
+        const w = Math.ceil(selectMarquee.width)
+        const h = Math.ceil(selectMarquee.height)
+
+
+        m.rect(x, y, w, h)
+        m.rect(x+1, y+1, w-2, h-2)
         ctx.clip(m, "evenodd");
         ctx.globalCompositeOperation = "exclusion"
         ctx.fillStyle = "white"
-        ctx.fillRect(selectMarquee.x, selectMarquee.y, selectMarquee.width, selectMarquee.height)
+        ctx.fillRect(x, y, w, h)
     }
 }
+
+CANVASES.SPRITE.draw = drawSpriteCanvas;
 
 /**
  * @param image
@@ -438,8 +508,8 @@ function addSpriteFromFile(image, file, index) {
 initUploadFileForm(spriteForm, i => {
     spriteIndex = i;
     dimensions = getMaxDimensions(getCurrentSprite().blobs)
-    spriteCanvasImage.width = dimensions.width;
-    spriteCanvasImage.height = dimensions.height;
+    CANVASES.SPRITE.width = dimensions.width;
+    CANVASES.SPRITE.height = dimensions.height;
     drawSpriteCanvas();
 }, addSpriteFromFile)
 
@@ -473,15 +543,19 @@ function drawPlayerCanvas() {
 
     if (!blob) return; // in case of overwrites during blob merging
 
-    const ctx = playerCanvas.getContext("2d")
+    const ctx = CANVASES.PLAYER.getContext("2d")
 
-    ctx.clearRect(0, 0, playerCanvas.width, playerCanvas.height)
+    ctx.scale(CANVASES.PLAYER.scale, CANVASES.PLAYER.scale);
+
+    ctx.clearRect(0, 0, CANVASES.PLAYER.width, CANVASES.PLAYER.height)
     ctx.drawImage(image, blob.x, blob.y, blob.width, blob.height, 0, 0, blob.width, blob.height)
 
     document.getElementById("frame").innerText = _frame;
 
     _frame++;
 }
+
+CANVASES.PLAYER.draw = drawPlayerCanvas;
 
 setInterval(animateSprite, (1/fps) * 1000)
 

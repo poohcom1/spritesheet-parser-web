@@ -21,9 +21,7 @@
         <canvas id="cropCanvas"></canvas>
     </div>
 
-
     <br/>
-
     <button id="cropButton">Crop Canvas</button>
 </div>
 
@@ -37,7 +35,13 @@
         <input type="file" id="spriteInput" name="img" accept="image/*"/>
     </form>
 
-    <canvas id="spriteCanvas"></canvas>
+    <div class="blob-button sprite-container">
+
+    </div>
+
+    <div class="canvas-container">
+        <canvas id="spriteCanvas"></canvas>
+    </div>
 
     <div class="control-buttons">
         <button id="mergeButton">Merge</button>
@@ -54,7 +58,9 @@
 
 <div class="container player-container">
     <h3>Sprite Player</h3>
-    <canvas id="playerCanvas"></canvas>
+    <div class="canvas-container">
+        <canvas id="playerCanvas"></canvas>
+    </div>
 
     <button id="playButton">Play</button>
     <button id="nextFrame">next</button>

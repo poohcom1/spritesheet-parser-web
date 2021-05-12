@@ -131,13 +131,13 @@ export function initUploadFileForm(formElement, onSelect, onImageAdded) {
         const image = new Image
         image.src = imageUrl
 
-        let option = document.createElement("option")
-
-        option.text = inputElement.files[0].name
-
-        selectElement.add(option)
-
         image.onload = () => {
+            let option = document.createElement("option")
+
+            option.text = inputElement.files[0].name
+
+            selectElement.add(option)
+
             selectElement.selectedIndex = selectElement.length-1
 
             onImageAdded(image, inputElement.files[0], selectElement.length-1)

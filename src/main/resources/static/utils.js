@@ -28,8 +28,8 @@ import {BlobRect} from "./models.js";
 export function rectContainsPoint(rect, point, padding = 0) {
     return point.x >= rect.x - padding
         && point.y >= rect.y - padding
-        && point.x <= rect.x + rect.width + padding
-        && point.y <= rect.y + rect.height + padding;
+        && point.x < rect.x + rect.width + padding - 1
+        && point.y < rect.y + rect.height + padding - 1;
 }
 
 /**
@@ -264,14 +264,3 @@ export function cropSprite(image, blob, dimensions) {
     return canvas.toDataURL();
 }
 
-/**
- * @param {Blob} theBlob
- * @param {string} fileName
- * @return {File}
- */
-export function blobToFile(theBlob, fileName){
-    //A Blob() is almost a File() - it's just missing the two properties below which we will add
-    theBlob.lastModifiedDate = new Date();
-    theBlob.name = fileName;
-    return theBlob;
-}
