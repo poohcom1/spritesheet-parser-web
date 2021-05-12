@@ -21,7 +21,7 @@ jobs:
         uses: whelk-io/maven-settings-xml-action@v14
         with:
           repositories: '[{ "id": "github", "url": "https://maven.pkg.github.com/poohcom1/*" }]'
-          servers: '[{ "id": "github", "username": ${{ github.actor }}, "password": ${{ secrets.GITHUB_TOKEN }} }]'
+          servers: '[{ "id": "github", "username": ' + ${{ github.actor }} + ', "password": ' + ${{ secrets.GITHUB_TOKEN }} + ' }]'
 
       - name: Maven Package
         run: mvn -B clean package -DskipTests
