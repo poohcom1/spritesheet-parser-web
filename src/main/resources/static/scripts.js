@@ -92,6 +92,7 @@ let showNumbers = false;
 
 /** @type HTMLCanvasElement */
 let focusedCanvas = CANVASES.CROP;
+let onCanvas = false;
 
 /** @type {{string: boolean}} */
 let keys = {}
@@ -130,16 +131,18 @@ onmousemove = (e) => {
 onmousedown = () => console.log("Down")
 
 addEventListener("mousewheel", (e) => {
-    console.log(keys[ZOOM_PAN_KEYS])
-    if (keys[ZOOM_PAN_KEYS]) {
-        if (e.deltaY < 0) {
-            e.preventDefault();
-            focusedCanvas.scale *= ZOOM_AMOUNT;
-            focusedCanvas.draw();
-        } else if (e.deltaY > 0) {
-            e.preventDefault();
-            focusedCanvas.scale /= ZOOM_AMOUNT;
-            focusedCanvas.draw();
+    if (onCanvas) {
+        console.log(keys[ZOOM_PAN_KEYS])
+        if (keys[ZOOM_PAN_KEYS]) {
+            if (e.deltaY < 0) {
+                e.preventDefault();
+                focusedCanvas.scale *= ZOOM_AMOUNT;
+                focusedCanvas.draw();
+            } else if (e.deltaY > 0) {
+                e.preventDefault();
+                focusedCanvas.scale /= ZOOM_AMOUNT;
+                focusedCanvas.draw();
+            }
         }
     }
 }, {passive: false})
@@ -219,7 +222,10 @@ CANVASES.CROP.draw = drawCropCanvas;
 // Crop canvas setup
 CANVASES.CROP.onmouseenter = () => {
     focusedCanvas = CANVASES.CROP;
+    onCanvas = true;
 }
+
+CANVASES.CROP.onmouseleave = () => onCanvas = false;
 
 CANVASES.CROP.onmousedown = (e) => {
     focusedCanvas = CANVASES.CROP;
@@ -305,10 +311,13 @@ let selectedPoints = []
 CANVASES.SPRITE.onmouseenter = () => {
     if (!getCurrentSprite()) return;
     focusedCanvas = CANVASES.SPRITE;
+    onCanvas = true;
     if (!mouseDown) {
         selectMarquee = null
     }
 }
+
+CANVASES.SPRITE.onmouseleave = () => onCanvas = false;
 
 CANVASES.SPRITE.onmousedown = (e) => {
     focusedCanvas = CANVASES.SPRITE;
