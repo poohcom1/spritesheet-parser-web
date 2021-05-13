@@ -1,9 +1,6 @@
 name: CI Test
 
-on:
-  push:
-    branches:
-      - 'master'
+on: [push]
 
 jobs:
 
@@ -17,7 +14,7 @@ jobs:
         uses: actions/setup-java@v1
         with:
           java-version: '15'
-      - name: maven-settings-xml-action
+      - name: Set up maven settings
         uses: whelk-io/maven-settings-xml-action@v14
         with:
           repositories: '[{ "id": "github", "url": "https://maven.pkg.github.com/poohcom1/*" }]'
@@ -26,8 +23,5 @@ jobs:
 
       - name: Maven Package
         run: mvn -B clean package -DskipTests
-        env:
-          GITHUB_ACTOR: ${{ github.actor }}
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Maven Verify
         run: mvn -B clean verify
