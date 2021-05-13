@@ -271,10 +271,15 @@ const addSpritesheetFromFile = (image, file, index) => {
     drawCropCanvas()
 }
 
-initUploadFileForm(spritesheetForm, i => {
-    spritesheetIndex = i;
+/** @param i
+ *  @return {number} */
+const selectSpritesheet = (i) => {
+    spritesheetIndex = i === -1 ? spritesheetIndex : i;
     drawCropCanvas();
-}, addSpritesheetFromFile)
+    return spritesheetIndex;
+}
+
+initUploadFileForm(spritesheetForm, selectSpritesheet, addSpritesheetFromFile)
 
 // On crop
 document.getElementById("cropButton").onclick = () => {
@@ -541,19 +546,26 @@ function addSpriteFromFile(image, file, index) {
         });
 }
 
-initUploadFileForm(spriteForm, i => {
+/** @param i
+ *  @return {number} */
+const selectSprite = (i) => {
+    spriteIndex = i === -1 ? spriteIndex : i;
+
     selectMarquee = new Marquee(0, 0);
     selectedBlobs = [];
     selectedPoints = [];
 
-    spriteIndex = i;
     dimensions = getMaxDimensions(getCurrentSprite().blobs)
 
     CANVASES.SPRITE.width = dimensions.width;
     CANVASES.SPRITE.height = dimensions.height;
 
     drawSpriteCanvas();
-}, addSpriteFromFile)
+
+    return spriteIndex;
+}
+
+initUploadFileForm(spriteForm, selectSprite, addSpriteFromFile)
 
 document.getElementById("resetBlobs").onclick = () => {
     getCurrentSprite().reset();

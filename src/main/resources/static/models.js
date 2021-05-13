@@ -186,16 +186,23 @@ export function initUploadFileForm(formElement, onSelect, onImageAdded) {
 
     formElement.ondblclick = () => inputElement.click();
 
+
     selectElement.onchange = () => {
         // If the last element (upload file) element is select, don't trigger image switch
         if (selectElement.selectedIndex === selectElement.length-1) {
             inputElement.click();
+            selectElement.selectedIndex = onSelect(-1);
             return;
         }
-        onSelect(selectElement.selectedIndex)
+
+        onSelect(selectElement.selectedIndex);
     }
 
     inputElement.onchange = () => {
+        if (inputElement.value.length === 0) {
+            return;
+        }
+
         console.log("Image added from file")
 
         let imageUrl = URL.createObjectURL(inputElement.files[0])
