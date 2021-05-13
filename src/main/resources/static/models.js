@@ -73,7 +73,6 @@ export function SpriteData(image, file, blobs= []) {
 
         const editedBlobs = this.blobs.filter(blob => blob.edited)
 
-        console.log(editedBlobs)
 
         this.blobs = [];
 
@@ -85,8 +84,6 @@ export function SpriteData(image, file, blobs= []) {
 
                 if (rectIntersects(newBlobs[i], editedBlob)) {
                     intersectsEditedBlob = true;
-
-                    console.log("Intersect!")
 
                     if (this.blobs.indexOf(editedBlob) === -1) {
                         this.blobs.push(editedBlob);
