@@ -18,10 +18,9 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 
-@CrossOrigin
+@CrossOrigin(origins = "http://localhost:63342")
 @RestController
 public class ImageController {
-    private final AtomicLong id = new AtomicLong();
 
     @PostMapping("/spritesheet")
     public List<BlobModel> detectBlobs(@RequestParam MultipartFile file,
@@ -56,26 +55,26 @@ public class ImageController {
         return blobModels;
     }
 
-    @PostMapping("/crop")
-    public ResponseEntity<byte[]> cropSprite(@RequestParam MultipartFile file,
-                                            @RequestParam int x,
-                                            @RequestParam int y,
-                                            @RequestParam int w,
-                                            @RequestParam int h) throws IOException {
-        // Received image
-        BufferedImage image = ImageIO.read(file.getInputStream());
-
-        //System.out.printf("x: %d, y: %d, width: %d, height: %d\n", x, y, w, h);
-
-        try {
-            image = image.getSubimage(x, y, w, h);
-        } catch (Exception e) {
-            image = image.getSubimage(x, y, w-1, h-1);
-        }
-
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        ImageIO.write(image, "png", outputStream);
-
-        return new ResponseEntity<>(outputStream.toByteArray(), HttpStatus.OK);
-    }
+//    @PostMapping("/crop")
+//    public ResponseEntity<byte[]> cropSprite(@RequestParam MultipartFile file,
+//                                            @RequestParam int x,
+//                                            @RequestParam int y,
+//                                            @RequestParam int w,
+//                                            @RequestParam int h) throws IOException {
+//        // Received image
+//        BufferedImage image = ImageIO.read(file.getInputStream());
+//
+//        //System.out.printf("x: %d, y: %d, width: %d, height: %d\n", x, y, w, h);
+//
+//        try {
+//            image = image.getSubimage(x, y, w, h);
+//        } catch (Exception e) {
+//            image = image.getSubimage(x, y, w-1, h-1);
+//        }
+//
+//        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+//        ImageIO.write(image, "png", outputStream);
+//
+//        return new ResponseEntity<>(outputStream.toByteArray(), HttpStatus.OK);
+//    }
 }
