@@ -128,11 +128,9 @@ onmousemove = (e) => {
     focusedCanvas.onmousemove(e)
 }
 
-onmousedown = () => console.log("Down")
 
 addEventListener("mousewheel", (e) => {
     if (onCanvas) {
-        console.log(keys[ZOOM_PAN_KEYS])
         if (keys[ZOOM_PAN_KEYS]) {
             if (e.deltaY < 0) {
                 e.preventDefault();

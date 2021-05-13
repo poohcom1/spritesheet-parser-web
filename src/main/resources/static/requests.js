@@ -1,8 +1,6 @@
 // Config
 const HOST_SERVER = location.host === "localhost:63342" ? "http://localhost:8080" : "";
 
-console.log(HOST_SERVER)
-
 /**
  * @param {File} file image to crop
  * @param x origin x
