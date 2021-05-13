@@ -173,10 +173,25 @@ export function BlobRect(x, y, width, height, points, row, col, edited = false) 
  * @param {imageAddedCallback} onImageAdded
  */
 export function initUploadFileForm(formElement, onSelect, onImageAdded) {
-    const inputElement = formElement.querySelector("input")
-    const selectElement = formElement.querySelector("select")
+    const inputElement = formElement.querySelector("input");
+    const selectElement = formElement.querySelector("select");
+
+    formElement.onclick = (e) => {
+        if (selectElement.length === 1) {
+            e.stopPropagation();
+
+            inputElement.click();
+        }
+    }
+
+    formElement.ondblclick = () => inputElement.click();
 
     selectElement.onchange = () => {
+        // If the last element (upload file) element is select, don't trigger image switch
+        if (selectElement.selectedIndex === selectElement.length-1) {
+            inputElement.click();
+            return;
+        }
         onSelect(selectElement.selectedIndex)
     }
 
@@ -191,13 +206,15 @@ export function initUploadFileForm(formElement, onSelect, onImageAdded) {
         image.onload = () => {
             let option = document.createElement("option")
 
-            option.text = inputElement.files[0].name
+            option.text = inputElement.files[0].name;
 
-            selectElement.add(option)
 
-            selectElement.selectedIndex = selectElement.length-1
+            // Insert before last element (preserved for upload option)
+            selectElement.insertBefore(option, selectElement[selectElement.length-1]);
 
-            onImageAdded(image, inputElement.files[0], selectElement.length-1)
+            selectElement.selectedIndex = selectElement.length-2;
+
+            onImageAdded(image, inputElement.files[0], selectElement.selectedIndex);
         }
     }
 }

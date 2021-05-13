@@ -11,10 +11,12 @@
 <div class="container crop-div">
     <h2>Crop Spritesheet</h2>
     <form id="spritesheetForm">
-        <label for="spritesheetInput">Upload Spritesheet:</label>
-        <select id="spritesheetSelect">
+<!--        <label for="spritesheetInput">Upload Spritesheet:</label>-->
+        <label for="spritesheetSelect"></label>
+        <select class="form-select" id="spritesheetSelect">
+            <option class="upload-option">Upload spritesheet...</option>
         </select>
-        <input type="file" id="spritesheetInput" name="img" accept="image/*"/>
+        <input class="file-input" type="file" id="spritesheetInput" name="img" accept="image/*"/>
     </form>
 
     <div class="canvas-container">
@@ -29,10 +31,12 @@
 <div class="container sprite-container">
     <h2>Extract sprites</h2>
     <form id="spriteForm">
-        <label for="spriteInput">Upload Sprite:</label>
-        <select id="spriteSelect">
+<!--        <label for="spriteInput">Upload Sprite:</label>-->
+        <label for="spriteSelect"></label>
+        <select class="form-select" id="spriteSelect">
+            <option class="upload-option">Upload sprite...</option>
         </select>
-        <input type="file" id="spriteInput" name="img" accept="image/*"/>
+        <input class="file-input"  type="file" id="spriteInput" name="img" accept="image/*"/>
     </form>
 
     <div class="blob-button sprite-container">
@@ -51,7 +55,8 @@
     </div>
 
     <div class="options-radio">
-        <input id="showNumbers" type="checkbox">Show Numbering</input>
+        <label for="showNumbers">Show Numbering</label>
+        <input id="showNumbers" type="checkbox"/>
     </div>
 
     <button id="resetBlobs">Reset</button>

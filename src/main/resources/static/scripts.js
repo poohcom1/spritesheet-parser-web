@@ -31,6 +31,7 @@ const CANVASES = {
 
 Object.keys(CANVASES).forEach(k => CANVASES[k].scale = 1.0)
 
+
 // Blob buttons
 const thresholdUp = document.getElementById("thresholdUp")
 const thresholdDown = document.getElementById("thresholdDown")
@@ -541,10 +542,16 @@ function addSpriteFromFile(image, file, index) {
 }
 
 initUploadFileForm(spriteForm, i => {
+    selectMarquee = new Marquee(0, 0);
+    selectedBlobs = [];
+    selectedPoints = [];
+
     spriteIndex = i;
     dimensions = getMaxDimensions(getCurrentSprite().blobs)
+
     CANVASES.SPRITE.width = dimensions.width;
     CANVASES.SPRITE.height = dimensions.height;
+
     drawSpriteCanvas();
 }, addSpriteFromFile)
 

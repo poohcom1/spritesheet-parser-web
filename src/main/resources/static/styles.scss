@@ -1,9 +1,14 @@
-$primary: rgb(28, 217, 181);
+$primary: rgb(175, 27, 27);
+
+$background: rgb(42, 49 , 45);
+$text-color: white;
 
 @import "scss/bootstrap";
 
 body {
     user-select: none;
+    background-color: $background;
+    color: $text-color;
 }
 
 canvas {
@@ -18,4 +23,35 @@ canvas {
     max-width: 100%;
     max-height: 65vh;
     overflow: scroll;
+}
+
+.file-input {
+    display: none;
+}
+
+.upload-option {
+    font-weight: bold;
+    color: $secondary;
+}
+
+/* width */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+/* Track */
+::-webkit-scrollbar-track, ::-webkit-scrollbar-corner {
+    background: $background;
+}
+
+
+/* Handle */
+::-webkit-scrollbar-thumb {
+    background: #888;
+}
+
+/* Handle on hover */
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
 }
