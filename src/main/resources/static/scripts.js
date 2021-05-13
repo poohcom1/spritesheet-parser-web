@@ -291,14 +291,14 @@ document.getElementById("cropButton").onclick = () => {
         // Name image with index
         const name = spritesheet.name + " #" + spritesheet.spriteCount++;
 
-        fetch(image.src).then(response => response.blob()).then(file => addSprite(image, file, name))
-
-        // Add to sprites
-        ;
+        fetch(image.src).then(response => response.blob()).then(file => addSpriteFromCrop(image, file, name))
     })
+
+    if (spritesheet.marquees.length > 0) document.getElementById("spriteSection").scrollIntoView();
 
     // Remove all crop marquee
     spritesheet.marquees.splice(0, spritesheet.marquees.length)
+
     // Update the marquee removal
     drawCropCanvas();
 }
@@ -520,17 +520,19 @@ CANVASES.SPRITE.draw = drawSpriteCanvas;
  * @param file
  * @param {string} name
  */
-function addSprite(image, file, name) {
+function addSpriteFromCrop(image, file, name) {
     sendBlobDetectionRequest(file)
         .then(response => response.json())
         .then(data => {
             sprites.push(new SpriteData(image, file, data.map(rect => convertToBlob(rect))))
 
             const option = document.createElement("option")
+            option.text = name;
 
-            option.text = name
+            const selectElement = spriteForm.querySelector("select")
+            selectElement.insertBefore(option, selectElement[selectElement.length-1]);
 
-            spriteForm.querySelector("select").add(option)
+            selectElement.selectedIndex = selectSprite(selectElement.length-2);
 
             drawSpriteCanvas()
         });
@@ -627,7 +629,15 @@ nextButton.onclick = () => {
 // ================================== DOWNLOAD =====================================
 downloadButton.onclick = () => {
     const a = document.createElement("a");
-    a.href = cropSprite(getCurrentSprite().image, getCurrentSprite().blobs[0], getMaxDimensions(getCurrentSprite().blobs));
+
+    const urls = []
+
+    for (let i = 0; i < getCurrentSprite().blobs.length; i++) {
+        urls.push(cropSprite(getCurrentSprite().image, getCurrentSprite().blobs[i], getMaxDimensions(getCurrentSprite().blobs)))
+    }
+
+
+
     a.download = "test.png"
     a.click()
 }

@@ -10727,7 +10727,6 @@ textarea.form-control-lg {
   }
 }
 body {
-  user-select: none;
   background-color: #2a312d;
   color: white;
   font-family: Poppins, serif;
@@ -10740,8 +10739,12 @@ body {
 .section {
   margin-bottom: 15px;
   padding: 10px 10px;
-  box-shadow: 2px 2px 10px black;
-  border: 25px;
+  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.23);
+  border-radius: 10px;
+}
+
+button, label {
+  user-select: none;
 }
 
 button {
@@ -10763,6 +10766,7 @@ canvas {
 }
 
 .canvas-container {
+  resize: vertical;
   max-width: 100%;
   min-height: 30px;
   max-height: 65vh;
@@ -10779,28 +10783,52 @@ canvas {
 
 .upload-option {
   font-weight: bold;
-  color: #6c757d;
+  color: black;
 }
 
-/* width */
+footer {
+  margin: 10px 0 0 0;
+  padding: 20px;
+}
+
+/* Scrollbar for body */
 ::-webkit-scrollbar {
   width: 10px;
   height: 10px;
 }
 
-/* Track */
 ::-webkit-scrollbar-track, ::-webkit-scrollbar-corner {
   background: #2a312d;
 }
 
-/* Handle */
 ::-webkit-scrollbar-thumb {
-  background: #888;
+  background: #495057;
+  border-radius: 15px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6c757d;
+}
+
+div::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+/* Track */
+div::-webkit-scrollbar-track, ::-webkit-scrollbar-corner {
+  background: #2a312d;
+}
+
+/* Handle */
+div::-webkit-scrollbar-thumb {
+  background: #af1b1b;
+  border-radius: 15px;
 }
 
 /* Handle on hover */
-::-webkit-scrollbar-thumb:hover {
-  background: #555;
+div::-webkit-scrollbar-thumb:hover {
+  background: #d05050;
 }
 
 /*# sourceMappingURL=styles.css.map */

@@ -249,6 +249,7 @@ export function cropImage(image, rect) {
  * @param {HTMLImageElement} image
  * @param {BlobRect} blob
  * @param {Rect} dimensions
+ * @return {string} URL
  */
 export function cropSprite(image, blob, dimensions) {
     const canvas = document.createElement("canvas");
