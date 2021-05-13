@@ -165,7 +165,8 @@ export function BlobRect(x, y, width, height, points, row, col, edited = false) 
  */
 /**
  * @callback fileSelectCallback
- * @param {number} index
+ * @param {number} index Index to switch to. An index of -1 will result in no change
+ * @return {number} The index that is switched to
  */
 /**
  * @param {HTMLFormElement} formElement

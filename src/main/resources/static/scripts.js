@@ -219,7 +219,7 @@ function drawCropCanvas() {
 CANVASES.CROP.draw = drawCropCanvas;
 
 // Crop canvas setup
-CANVASES.CROP.onmouseenter = () => {
+CANVASES.CROP.parentElement.onmouseenter = () => {
     focusedCanvas = CANVASES.CROP;
     onCanvas = true;
 }
@@ -312,10 +312,13 @@ let selectedPoints = []
 
 
 // BLOB CANVAS ACTIONS
-CANVASES.SPRITE.onmouseenter = () => {
+CANVASES.SPRITE.parentElement.onmouseenter = () => {
     if (!getCurrentSprite()) return;
+
+
     focusedCanvas = CANVASES.SPRITE;
     onCanvas = true;
+
     if (!mouseDown) {
         selectMarquee = null
     }
