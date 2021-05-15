@@ -386,6 +386,8 @@ thresholdUp.onclick = () => {
 
     getCurrentSprite().loading = true;
     getCurrentSprite().threshold++;
+    drawSpriteCanvas();
+
     sendBlobDetectionRequest(getCurrentSprite().file, getCurrentSprite().threshold)
         .then((response) => response.json())
         .then(data => {
@@ -400,6 +402,9 @@ thresholdDown.onclick = () => {
 
     getCurrentSprite().loading = true;
     getCurrentSprite().threshold--;
+    drawSpriteCanvas();
+
+
     sendBlobDetectionRequest(getCurrentSprite().file, getCurrentSprite().threshold)
         .then((response) => response.json())
         .then(data => {
