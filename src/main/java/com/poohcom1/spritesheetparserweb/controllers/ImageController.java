@@ -15,6 +15,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
 
 
@@ -24,12 +25,13 @@ public class ImageController {
 
     @PostMapping("/spritesheet")
     public List<BlobModel> detectBlobs(@RequestParam MultipartFile file,
-                             @RequestParam int[] backgroundColors,
-                             @RequestParam int distance,
-                             @RequestParam int primaryOrder,
-                             @RequestParam int secondaryOrder) throws IOException {
+                                       @RequestParam int[] backgroundColors,
+                                       @RequestParam int distance,
+                                       @RequestParam int primaryOrder,
+                                       @RequestParam int secondaryOrder) throws IOException, InterruptedException {
 
         BufferedImage bufferedImage = ImageIO.read(file.getInputStream());
+
 
         // Convert image to ABGR if not one
         if (bufferedImage.getType() != BufferedImage.TYPE_4BYTE_ABGR) {
@@ -54,27 +56,4 @@ public class ImageController {
 
         return blobModels;
     }
-
-//    @PostMapping("/crop")
-//    public ResponseEntity<byte[]> cropSprite(@RequestParam MultipartFile file,
-//                                            @RequestParam int x,
-//                                            @RequestParam int y,
-//                                            @RequestParam int w,
-//                                            @RequestParam int h) throws IOException {
-//        // Received image
-//        BufferedImage image = ImageIO.read(file.getInputStream());
-//
-//        //System.out.printf("x: %d, y: %d, width: %d, height: %d\n", x, y, w, h);
-//
-//        try {
-//            image = image.getSubimage(x, y, w, h);
-//        } catch (Exception e) {
-//            image = image.getSubimage(x, y, w-1, h-1);
-//        }
-//
-//        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-//        ImageIO.write(image, "png", outputStream);
-//
-//        return new ResponseEntity<>(outputStream.toByteArray(), HttpStatus.OK);
-//    }
 }

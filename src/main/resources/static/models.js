@@ -33,7 +33,6 @@ export class Marquee {
     }
 }
 
-
 /**
  * @param {HTMLImageElement} image
  * @param {string} name
@@ -47,39 +46,42 @@ export function SpritesheetData(image, name, marquees = [])  {
     this.spriteCount = 0;
 }
 
-/**
- * @param {HTMLImageElement} image
- * @param {File} file
- * @param {BlobRect[]} blobs
- * @constructor
- */
-export function SpriteData(image, file, blobs= []) {
-    blobs = blobs.filter(b => b.points.length !== 0)
+export class SpriteData {
+    #blobs = [];
+    #originalBlobs = [];
 
-    this.image = image;
-    this.file = file;
+    constructor(image, file) {
+        this.image = image;
+        this.file = file;
 
-    this.blobs = blobs;
-    let originalBlobs = JSON.parse(JSON.stringify(blobs))
-
-    this.threshold = 2;
-
-    this.reset = () => {
-        this.blobs = JSON.parse(JSON.stringify(originalBlobs))
+        this.loading = true;
+        this.threshold = 2;
     }
 
-    this.getName = () => {
+    get blobs() {
+        return this.#blobs;
+    }
+
+    set blobs(blobs) {
+        this.#originalBlobs = JSON.parse(JSON.stringify(blobs))
+        this.#blobs = blobs;
+    }
+
+    reset = () => {
+        this.#blobs = JSON.parse(JSON.stringify(this.#originalBlobs))
+    }
+
+    getName = () => {
         const index = this.file.name.lastIndexOf(".");
         return this.file.name.substring(0, index);
     }
 
     /** @param {BlobRect[]} newBlobs */
-    this.updateBlobs = (newBlobs) => {
+    updateBlobs = (newBlobs) => {
 
-        const editedBlobs = this.blobs.filter(blob => blob.edited)
+        const editedBlobs = this.#blobs.filter(blob => blob.edited)
 
-
-        this.blobs = [];
+        this.#blobs = [];
 
         for (let i = 0; i < newBlobs.length; i++) {
             let intersectsEditedBlob = false;
@@ -90,21 +92,87 @@ export function SpriteData(image, file, blobs= []) {
                 if (rectIntersects(newBlobs[i], editedBlob)) {
                     intersectsEditedBlob = true;
 
-                    if (this.blobs.indexOf(editedBlob) === -1) {
-                        this.blobs.push(editedBlob);
+                    if (this.#blobs.indexOf(editedBlob) === -1) {
+                        this.#blobs.push(editedBlob);
                     }
                     break;
                 }
             }
 
             if (!intersectsEditedBlob) {
-                this.blobs.push(newBlobs[i])
+                this.#blobs.push(newBlobs[i])
             }
         }
 
-        originalBlobs = JSON.parse(JSON.stringify(newBlobs));
+        this.#originalBlobs = JSON.parse(JSON.stringify(newBlobs));
     }
 }
+
+// /**
+//  * @param {HTMLImageElement} image
+//  * @param {File} file
+//  * @param {number} id
+//  * @param {BlobRect[]} blobs
+//  * @constructor
+//  */
+// export function SpriteData(image, file) {
+//     //blobs = blobs.filter(b => b.points.length !== 0)
+//
+//     this.loading = true;
+//
+//     this.image = image;
+//     this.file = file;
+//
+//     let blobs = [];
+//     let originalBlobs = JSON.parse(JSON.stringify(blobs))
+//
+//     set blobs() {
+//
+//     }
+//
+//
+//     this.threshold = 2;
+//
+//     this.reset = () => {
+//         this.blobs = JSON.parse(JSON.stringify(originalBlobs))
+//     }
+//
+//     this.getName = () => {
+//         const index = this.file.name.lastIndexOf(".");
+//         return this.file.name.substring(0, index);
+//     }
+//
+//     /** @param {BlobRect[]} newBlobs */
+//     this.updateBlobs = (newBlobs) => {
+//
+//         const editedBlobs = this.blobs.filter(blob => blob.edited)
+//
+//         this.blobs = [];
+//
+//         for (let i = 0; i < newBlobs.length; i++) {
+//             let intersectsEditedBlob = false;
+//
+//             for (let j = 0; j < editedBlobs.length; j++) {
+//                 const editedBlob = editedBlobs[j];
+//
+//                 if (rectIntersects(newBlobs[i], editedBlob)) {
+//                     intersectsEditedBlob = true;
+//
+//                     if (this.blobs.indexOf(editedBlob) === -1) {
+//                         this.blobs.push(editedBlob);
+//                     }
+//                     break;
+//                 }
+//             }
+//
+//             if (!intersectsEditedBlob) {
+//                 this.blobs.push(newBlobs[i])
+//             }
+//         }
+//
+//         originalBlobs = JSON.parse(JSON.stringify(newBlobs));
+//     }
+// }
 
 /**
  * @typedef DetectedBlob
