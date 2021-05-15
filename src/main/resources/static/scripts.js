@@ -454,7 +454,12 @@ function getCurrentSprite() {
  * Draws the sprite canvas based on current state
  */
 
-const pointsCanvasContext = document.createElement("canvas").getContext('2d');
+const pointsCanvas = document.createElement("canvas");
+const pointsCanvasContext = pointsCanvas.getContext('2d');
+pointsCanvas.width=1000;
+pointsCanvas.height=1000;
+
+let previousPoints = []
 
 function drawSpriteCanvas() {
     if (sprites.length === 0) return;
@@ -462,6 +467,8 @@ function drawSpriteCanvas() {
     const ctx = CANVASES.SPRITE.getContext("2d");
 
     scaleCanvas(CANVASES.SPRITE, getCurrentSprite().image.width, getCurrentSprite().image.height)
+    //pointsCanvas.width = getCurrentSprite().image.width;
+    //pointsCanvas.height = getCurrentSprite().image.height;
 
     ctx.drawImage(getCurrentSprite().image, 0, 0)
 
@@ -502,10 +509,24 @@ function drawSpriteCanvas() {
         ctx.fillRect(b.x, b.y, b.width+1, b.height+1)
     })
 
-    selectedPoints.forEach(p => {
-        ctx.fillStyle = POINT_COLOR;
-        ctx.fillRect(p.x, p.y, 1, 1)
+    pointsCanvasContext.fillStyle = POINT_COLOR;
+
+    let i = 0;
+
+    selectedPoints.filter(x => !previousPoints.includes(x)).forEach(p => {
+        pointsCanvasContext.fillRect(p.x, p.y, 1, 1)
+        i++;
     })
+
+    previousPoints.filter(x => !selectedPoints.includes(x)).forEach(p => {
+        pointsCanvasContext.clearRect(p.x, p.y, 1, 1)
+        i++;
+    })
+
+    console.log(i)
+
+    ctx.drawImage(pointsCanvas, 0, 0)
+    previousPoints = [...selectedPoints];
 
     // Draw marquee
     if (selectMarquee) {
