@@ -68,6 +68,11 @@ export function SpriteData(image, file, blobs= []) {
         this.blobs = JSON.parse(JSON.stringify(originalBlobs))
     }
 
+    this.getName = () => {
+        const index = this.file.name.lastIndexOf(".");
+        return this.file.name.substring(0, index);
+    }
+
     /** @param {BlobRect[]} newBlobs */
     this.updateBlobs = (newBlobs) => {
 
@@ -165,7 +170,8 @@ export function BlobRect(x, y, width, height, points, row, col, edited = false) 
  */
 /**
  * @callback fileSelectCallback
- * @param {number} index
+ * @param {number} index Index to switch to. An index of -1 will result in no change
+ * @return {number} The index that is switched to
  */
 /**
  * @param {HTMLFormElement} formElement
@@ -173,14 +179,36 @@ export function BlobRect(x, y, width, height, points, row, col, edited = false) 
  * @param {imageAddedCallback} onImageAdded
  */
 export function initUploadFileForm(formElement, onSelect, onImageAdded) {
-    const inputElement = formElement.querySelector("input")
-    const selectElement = formElement.querySelector("select")
+    const inputElement = formElement.querySelector("input");
+    const selectElement = formElement.querySelector("select");
+
+    formElement.onclick = (e) => {
+        if (selectElement.length === 1) {
+            e.stopPropagation();
+
+            inputElement.click();
+        }
+    }
+
+    formElement.ondblclick = () => inputElement.click();
+
 
     selectElement.onchange = () => {
-        onSelect(selectElement.selectedIndex)
+        // If the last element (upload file) element is select, don't trigger image switch
+        if (selectElement.selectedIndex === selectElement.length-1) {
+            inputElement.click();
+            selectElement.selectedIndex = onSelect(-1);
+            return;
+        }
+
+        onSelect(selectElement.selectedIndex);
     }
 
     inputElement.onchange = () => {
+        if (inputElement.value.length === 0) {
+            return;
+        }
+
         console.log("Image added from file")
 
         let imageUrl = URL.createObjectURL(inputElement.files[0])
@@ -191,13 +219,15 @@ export function initUploadFileForm(formElement, onSelect, onImageAdded) {
         image.onload = () => {
             let option = document.createElement("option")
 
-            option.text = inputElement.files[0].name
+            option.text = inputElement.files[0].name;
 
-            selectElement.add(option)
 
-            selectElement.selectedIndex = selectElement.length-1
+            // Insert before last element (preserved for upload option)
+            selectElement.insertBefore(option, selectElement[selectElement.length-1]);
 
-            onImageAdded(image, inputElement.files[0], selectElement.length-1)
+            selectElement.selectedIndex = selectElement.length-2;
+
+            onImageAdded(image, inputElement.files[0], selectElement.selectedIndex);
         }
     }
 }

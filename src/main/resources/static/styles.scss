@@ -1,13 +1,56 @@
-$primary: rgb(28, 217, 181);
+$primary: rgb(175, 27, 27);
+$primary-dark: rgb(135, 21, 21);
+$primary-light: rgb(208, 80, 80);
+
+
+$background: rgb(42, 49 , 45);
+$text-color: white;
 
 @import "scss/bootstrap";
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200&display=swap');
+
+$section: $background;
 
 body {
+    background-color: $background;
+    color: $text-color;
+    font-family: Poppins, serif;
+}
+
+.text-body {
+    color: $text-color;
+}
+
+.section {
+    margin-bottom: 15px;
+    padding: 10px 10px;
+
+    background-color: $section;
+
+    border-radius: 10px;
+    border: 1px solid white;
+}
+
+
+
+button, label {
     user-select: none;
+}
+
+button {
+    margin: 5px 10px 0 10px;
+}
+
+.button-container {
+    margin: 10px;
 }
 
 canvas {
     user-select: none;
+
+    margin: 0;
+    padding: 0;
+    
     image-rendering: -moz-crisp-edges;
     image-rendering: -webkit-crisp-edges;
     image-rendering: pixelated;
@@ -15,7 +58,73 @@ canvas {
 }
 
 .canvas-container {
+    resize: vertical;
+
     max-width: 100%;
+    min-height: 30px;
     max-height: 65vh;
     overflow: scroll;
+
+    margin: 10px;
+    padding: 0;
+
+    background-image: url("assets/background.png");
+    background-repeat:repeat;
+}
+
+.file-input {
+    display: none;
+}
+
+.upload-option {
+    font-weight: bold;
+    color: black;
+}
+
+footer {
+    margin: 10px 0 0 0;
+    padding: 20px;
+}
+
+
+/* Scrollbar for body */
+
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-track, ::-webkit-scrollbar-corner {
+    background: $background;
+}
+
+::-webkit-scrollbar-thumb {
+    background: $gray-700;
+    border-radius: 15px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: $gray-600;
+}
+
+div::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+/* Track */
+div::-webkit-scrollbar-track, ::-webkit-scrollbar-corner {
+    background: $section;
+}
+
+
+/* Handle */
+div::-webkit-scrollbar-thumb {
+    background: $primary;
+    border-radius: 15px;
+}
+
+/* Handle on hover */
+div::-webkit-scrollbar-thumb:hover {
+    background: $primary-light;
 }

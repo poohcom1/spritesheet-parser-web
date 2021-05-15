@@ -31,6 +31,7 @@ const CANVASES = {
 
 Object.keys(CANVASES).forEach(k => CANVASES[k].scale = 1.0)
 
+
 // Blob buttons
 const thresholdUp = document.getElementById("thresholdUp")
 const thresholdDown = document.getElementById("thresholdDown")
@@ -218,7 +219,7 @@ function drawCropCanvas() {
 CANVASES.CROP.draw = drawCropCanvas;
 
 // Crop canvas setup
-CANVASES.CROP.onmouseenter = () => {
+CANVASES.CROP.parentElement.onmouseenter = () => {
     focusedCanvas = CANVASES.CROP;
     onCanvas = true;
 }
@@ -270,10 +271,15 @@ const addSpritesheetFromFile = (image, file, index) => {
     drawCropCanvas()
 }
 
-initUploadFileForm(spritesheetForm, i => {
-    spritesheetIndex = i;
+/** @param i
+ *  @return {number} */
+const selectSpritesheet = (i) => {
+    spritesheetIndex = i === -1 ? spritesheetIndex : i;
     drawCropCanvas();
-}, addSpritesheetFromFile)
+    return spritesheetIndex;
+}
+
+initUploadFileForm(spritesheetForm, selectSpritesheet, addSpritesheetFromFile)
 
 // On crop
 document.getElementById("cropButton").onclick = () => {
@@ -285,19 +291,19 @@ document.getElementById("cropButton").onclick = () => {
         // Name image with index
         const name = spritesheet.name + " #" + spritesheet.spriteCount++;
 
-        fetch(image.src).then(response => response.blob()).then(file => addSprite(image, file, name))
-
-        // Add to sprites
-        ;
+        fetch(image.src).then(response => response.blob()).then(file => addSpriteFromCrop(image, file, name))
     })
+
+    if (spritesheet.marquees.length > 0) document.getElementById("spriteSection").scrollIntoView();
 
     // Remove all crop marquee
     spritesheet.marquees.splice(0, spritesheet.marquees.length)
+
     // Update the marquee removal
     drawCropCanvas();
 }
 
-// ================================ BLOB DETECTION ================================
+// ================================================= BLOB DETECTION ====================================================
 
 let selectMarquee = new Marquee(0, 0);
 
@@ -306,10 +312,13 @@ let selectedPoints = []
 
 
 // BLOB CANVAS ACTIONS
-CANVASES.SPRITE.onmouseenter = () => {
+CANVASES.SPRITE.parentElement.onmouseenter = () => {
     if (!getCurrentSprite()) return;
+
+
     focusedCanvas = CANVASES.SPRITE;
     onCanvas = true;
+
     if (!mouseDown) {
         selectMarquee = null
     }
@@ -511,17 +520,19 @@ CANVASES.SPRITE.draw = drawSpriteCanvas;
  * @param file
  * @param {string} name
  */
-function addSprite(image, file, name) {
+function addSpriteFromCrop(image, file, name) {
     sendBlobDetectionRequest(file)
         .then(response => response.json())
         .then(data => {
             sprites.push(new SpriteData(image, file, data.map(rect => convertToBlob(rect))))
 
             const option = document.createElement("option")
+            option.text = name;
 
-            option.text = name
+            const selectElement = spriteForm.querySelector("select")
+            selectElement.insertBefore(option, selectElement[selectElement.length-1]);
 
-            spriteForm.querySelector("select").add(option)
+            selectElement.selectedIndex = selectSprite(selectElement.length-2);
 
             drawSpriteCanvas()
         });
@@ -540,13 +551,26 @@ function addSpriteFromFile(image, file, index) {
         });
 }
 
-initUploadFileForm(spriteForm, i => {
-    spriteIndex = i;
+/** @param i
+ *  @return {number} */
+const selectSprite = (i) => {
+    spriteIndex = i === -1 ? spriteIndex : i;
+
+    selectMarquee = new Marquee(0, 0);
+    selectedBlobs = [];
+    selectedPoints = [];
+
     dimensions = getMaxDimensions(getCurrentSprite().blobs)
+
     CANVASES.SPRITE.width = dimensions.width;
     CANVASES.SPRITE.height = dimensions.height;
+
     drawSpriteCanvas();
-}, addSpriteFromFile)
+
+    return spriteIndex;
+}
+
+initUploadFileForm(spriteForm, selectSprite, addSpriteFromFile)
 
 document.getElementById("resetBlobs").onclick = () => {
     getCurrentSprite().reset();
@@ -604,8 +628,32 @@ nextButton.onclick = () => {
 
 // ================================== DOWNLOAD =====================================
 downloadButton.onclick = () => {
-    const a = document.createElement("a");
-    a.href = cropSprite(getCurrentSprite().image, getCurrentSprite().blobs[0], getMaxDimensions(getCurrentSprite().blobs));
-    a.download = "test.png"
-    a.click()
+    const zip = JSZip();
+
+
+    const fetches = []
+
+    for (let i = 0; i < getCurrentSprite().blobs.length; i++) {
+        const url = cropSprite(getCurrentSprite().image, getCurrentSprite().blobs[i], getMaxDimensions(getCurrentSprite().blobs))
+        fetches.push(fetch(url));
+    }
+
+    // Convert url to data
+    Promise.all(fetches).then(responses =>
+        // Convert data to blob
+        Promise.all(responses.map(res => res.blob())).then(blobs => {
+            blobs.forEach((blob, i) =>
+                zip.file(getCurrentSprite().getName() + "_" + i.toString().padStart(2, '0') + ".png", new File([blob], "f.png")
+                ));
+
+            zip.generateAsync({type:"base64"}).then(function (base64) {
+                const link = document.createElement('a');
+                link.href = "data:application/zip;base64," + base64;
+                link.download = getCurrentSprite().getName() + ".zip";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            })
+        })
+    )
 }
