@@ -61,8 +61,6 @@ const SELECTED_EDITED_BLOB_COLOR = "rgba(0,255,0,0.5)"
 const TEXT_COLOR = "rgba(0, 0, 0, 1.0)"
 const TEXT_BACKGROUND = "rgba(255, 0, 0, 0.25)"
 
-const CANVAS_BACKGROUND = "rgb(109,109,109)"
-
 const TEXT_SIZE = 20;
 
 const ZOOM_AMOUNT = 2;
@@ -454,12 +452,6 @@ function getCurrentSprite() {
  * Draws the sprite canvas based on current state
  */
 
-const pointsCanvas = document.createElement("canvas");
-const pointsCanvasContext = pointsCanvas.getContext('2d');
-pointsCanvas.width=1000;
-pointsCanvas.height=1000;
-
-let previousPoints = []
 
 function drawSpriteCanvas() {
     if (sprites.length === 0) return;
@@ -467,8 +459,6 @@ function drawSpriteCanvas() {
     const ctx = CANVASES.SPRITE.getContext("2d");
 
     scaleCanvas(CANVASES.SPRITE, getCurrentSprite().image.width, getCurrentSprite().image.height)
-    //pointsCanvas.width = getCurrentSprite().image.width;
-    //pointsCanvas.height = getCurrentSprite().image.height;
 
     ctx.drawImage(getCurrentSprite().image, 0, 0)
 
@@ -480,7 +470,7 @@ function drawSpriteCanvas() {
         ctx.textAlign = "center";
         ctx.font = "30px Arial"
         ctx.fillStyle = "white"
-        ctx.fillText("Detecting Blobs", getCurrentSprite().image.width/2, getCurrentSprite().image.height/2)
+        ctx.fillText("Detecting Blobs", CANVASES.SPRITE.parentElement.offsetWidth/2, CANVASES.SPRITE.parentElement.offsetHeight/2)
     }
 
     // Blobs
@@ -504,29 +494,17 @@ function drawSpriteCanvas() {
     })
 
     // Selected blobs
+
     selectedBlobs.forEach(b => {
         ctx.fillStyle = b.edited ? SELECTED_EDITED_BLOB_COLOR : SELECTED_BLOB_COLOR;
         ctx.fillRect(b.x, b.y, b.width+1, b.height+1)
     })
 
-    pointsCanvasContext.fillStyle = POINT_COLOR;
-
-    let i = 0;
-
-    selectedPoints.filter(x => !previousPoints.includes(x)).forEach(p => {
-        pointsCanvasContext.fillRect(p.x, p.y, 1, 1)
-        i++;
+    ctx.fillStyle = POINT_COLOR;
+    selectedPoints.forEach(p => {
+        ctx.fillRect(p.x, p.y, 1, 1)
     })
 
-    previousPoints.filter(x => !selectedPoints.includes(x)).forEach(p => {
-        pointsCanvasContext.clearRect(p.x, p.y, 1, 1)
-        i++;
-    })
-
-    console.log(i)
-
-    ctx.drawImage(pointsCanvas, 0, 0)
-    previousPoints = [...selectedPoints];
 
     // Draw marquee
     if (selectMarquee) {
