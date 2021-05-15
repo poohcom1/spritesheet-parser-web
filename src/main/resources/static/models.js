@@ -68,6 +68,11 @@ export function SpriteData(image, file, blobs= []) {
         this.blobs = JSON.parse(JSON.stringify(originalBlobs))
     }
 
+    this.getName = () => {
+        const index = this.file.name.lastIndexOf(".");
+        return this.file.name.substring(0, index);
+    }
+
     /** @param {BlobRect[]} newBlobs */
     this.updateBlobs = (newBlobs) => {
 

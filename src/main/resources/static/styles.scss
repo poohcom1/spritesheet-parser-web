@@ -2,11 +2,14 @@ $primary: rgb(175, 27, 27);
 $primary-dark: rgb(135, 21, 21);
 $primary-light: rgb(208, 80, 80);
 
+
 $background: rgb(42, 49 , 45);
 $text-color: white;
 
 @import "scss/bootstrap";
 @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@200&display=swap');
+
+$section: $background;
 
 body {
     background-color: $background;
@@ -21,10 +24,14 @@ body {
 .section {
     margin-bottom: 15px;
     padding: 10px 10px;
-    box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.23);
+
+    background-color: $section;
 
     border-radius: 10px;
+    border: 1px solid white;
 }
+
+
 
 button, label {
     user-select: none;
@@ -107,7 +114,7 @@ div::-webkit-scrollbar {
 
 /* Track */
 div::-webkit-scrollbar-track, ::-webkit-scrollbar-corner {
-    background: $background;
+    background: $section;
 }
 
 

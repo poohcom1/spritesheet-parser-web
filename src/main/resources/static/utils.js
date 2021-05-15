@@ -209,19 +209,15 @@ export function removePoints(blob, pointsToDelete) {
  * @return {Rect}
  */
 export function getMaxDimensions(rects) {
-    let minX = rects[0].x;
-    let minY = rects[0].y;
-    let maxX = rects[0].x + rects[0].width;
-    let maxY = rects[0].y + rects[0].height;
+    let maxWidth = 0;
+    let maxHeight= 0;
 
     rects.forEach(rect => {
-        minX = Math.min(minX, rect.x);
-        minY = Math.min(minY, rect.y);
-        maxX = Math.min(maxX, rect.x + rect.width);
-        maxY = Math.min(maxY, rect.y + rect.height);
+        maxWidth = Math.max(maxWidth, rect.width);
+        maxHeight = Math.max(maxHeight, rect.height);
     })
 
-    return {x: minX, y:minY, width: maxX - minX, height: maxY - minY}
+    return {x: 0, y:0, width: maxWidth, height: maxHeight}
 }
 
 /**

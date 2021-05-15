@@ -303,7 +303,7 @@ document.getElementById("cropButton").onclick = () => {
     drawCropCanvas();
 }
 
-// ================================ BLOB DETECTION ================================
+// ================================================= BLOB DETECTION ====================================================
 
 let selectMarquee = new Marquee(0, 0);
 
@@ -628,16 +628,32 @@ nextButton.onclick = () => {
 
 // ================================== DOWNLOAD =====================================
 downloadButton.onclick = () => {
-    const a = document.createElement("a");
+    const zip = JSZip();
 
-    const urls = []
+
+    const fetches = []
 
     for (let i = 0; i < getCurrentSprite().blobs.length; i++) {
-        urls.push(cropSprite(getCurrentSprite().image, getCurrentSprite().blobs[i], getMaxDimensions(getCurrentSprite().blobs)))
+        const url = cropSprite(getCurrentSprite().image, getCurrentSprite().blobs[i], getMaxDimensions(getCurrentSprite().blobs))
+        fetches.push(fetch(url));
     }
 
+    // Convert url to data
+    Promise.all(fetches).then(responses =>
+        // Convert data to blob
+        Promise.all(responses.map(res => res.blob())).then(blobs => {
+            blobs.forEach((blob, i) =>
+                zip.file(getCurrentSprite().getName() + "_" + i.toString().padStart(2, '0') + ".png", new File([blob], "f.png")
+                ));
 
-
-    a.download = "test.png"
-    a.click()
+            zip.generateAsync({type:"base64"}).then(function (base64) {
+                const link = document.createElement('a');
+                link.href = "data:application/zip;base64," + base64;
+                link.download = getCurrentSprite().getName() + ".zip";
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            })
+        })
+    )
 }

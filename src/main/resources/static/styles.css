@@ -10739,8 +10739,9 @@ body {
 .section {
   margin-bottom: 15px;
   padding: 10px 10px;
-  box-shadow: 2px 2px 10px rgba(0, 0, 0, 0.23);
+  background-color: #2a312d;
   border-radius: 10px;
+  border: 1px solid white;
 }
 
 button, label {
