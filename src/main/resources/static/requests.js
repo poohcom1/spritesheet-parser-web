@@ -26,12 +26,13 @@ export function sendCropRequest(file, x, y, w, h) {
 /**
  * @param {File} file
  * @param distance
+ * @param backgroundColors
  * @return {Promise<Response>}
  */
-export function sendBlobDetectionRequest(file, distance=2) {
+export function sendBlobDetectionRequest(file, distance=2, backgroundColors=[]) {
     const formData = new FormData()
     formData.append("file", file)
-    formData.append("backgroundColors", [])
+    formData.append("backgroundColors", backgroundColors)
     formData.append("distance", distance + "")
     formData.append("primaryOrder", 0 + "")
     formData.append("secondaryOrder", 1 + "")

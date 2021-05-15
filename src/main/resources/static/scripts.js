@@ -125,10 +125,10 @@ onmouseup = (e) =>  {
     drawSpriteCanvas();
     focusedCanvas.onmouseup(e)
 }
+
 onmousemove = (e) => {
     focusedCanvas.onmousemove(e)
 }
-
 
 addEventListener("mousewheel", (e) => {
     if (onCanvas) {
@@ -386,11 +386,13 @@ CANVASES.SPRITE.onmouseup = () => {
 thresholdUp.onclick = () => {
     if (getCurrentSprite().blobs.length <= 2) return;
 
+    getCurrentSprite().loading = true;
     getCurrentSprite().threshold++;
     sendBlobDetectionRequest(getCurrentSprite().file, getCurrentSprite().threshold)
         .then((response) => response.json())
         .then(data => {
             getCurrentSprite().updateBlobs(convertToBlobArray(data))
+            getCurrentSprite().loading = false;
             drawSpriteCanvas();
         })
 }
@@ -398,11 +400,13 @@ thresholdUp.onclick = () => {
 thresholdDown.onclick = () => {
     if (getCurrentSprite().threshold <= 2) return;
 
+    getCurrentSprite().loading = true;
     getCurrentSprite().threshold--;
     sendBlobDetectionRequest(getCurrentSprite().file, getCurrentSprite().threshold)
         .then((response) => response.json())
         .then(data => {
             getCurrentSprite().updateBlobs(convertToBlobArray(data))
+            getCurrentSprite().loading = false;
             drawSpriteCanvas();
         })
 }
@@ -450,6 +454,7 @@ function getCurrentSprite() {
  * Draws the sprite canvas based on current state
  */
 
+const pointsCanvasContext = document.createElement("canvas").getContext('2d');
 
 function drawSpriteCanvas() {
     if (sprites.length === 0) return;
@@ -458,10 +463,18 @@ function drawSpriteCanvas() {
 
     scaleCanvas(CANVASES.SPRITE, getCurrentSprite().image.width, getCurrentSprite().image.height)
 
-    ctx.fillStyle = CANVAS_BACKGROUND;
-    ctx.fillRect(0, 0, CANVASES.SPRITE.width, CANVASES.SPRITE.height)
-
     ctx.drawImage(getCurrentSprite().image, 0, 0)
+
+    // Loading
+    if (getCurrentSprite().loading) {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.5)"
+        ctx.fillRect(0, 0, CANVASES.SPRITE.width, CANVASES.SPRITE.height)
+
+        ctx.textAlign = "center";
+        ctx.font = "30px Arial"
+        ctx.fillStyle = "white"
+        ctx.fillText("Detecting Blobs", getCurrentSprite().image.width/2, getCurrentSprite().image.height/2)
+    }
 
     // Blobs
     if (showBlobs)
@@ -483,7 +496,6 @@ function drawSpriteCanvas() {
         }
     })
 
-
     // Selected blobs
     selectedBlobs.forEach(b => {
         ctx.fillStyle = b.edited ? SELECTED_EDITED_BLOB_COLOR : SELECTED_BLOB_COLOR;
@@ -503,7 +515,6 @@ function drawSpriteCanvas() {
         const w = selectMarquee.width;
         const h = selectMarquee.height;
 
-
         m.rect(x, y, w, h)
         m.rect(x+1, y+1, w-2, h-2)
         ctx.clip(m, "evenodd");
@@ -521,18 +532,24 @@ CANVASES.SPRITE.draw = drawSpriteCanvas;
  * @param {string} name
  */
 function addSpriteFromCrop(image, file, name) {
+    const sprite = new SpriteData(image, file);
+    sprites.push(sprite);
+
+    const option = document.createElement("option")
+    option.text = name;
+
+    const selectElement = spriteForm.querySelector("select")
+    selectElement.insertBefore(option, selectElement[selectElement.length-1]);
+
+    selectElement.selectedIndex = selectSprite(selectElement.length-2);
+
+    drawSpriteCanvas()
+
     sendBlobDetectionRequest(file)
         .then(response => response.json())
         .then(data => {
-            sprites.push(new SpriteData(image, file, data.map(rect => convertToBlob(rect))))
-
-            const option = document.createElement("option")
-            option.text = name;
-
-            const selectElement = spriteForm.querySelector("select")
-            selectElement.insertBefore(option, selectElement[selectElement.length-1]);
-
-            selectElement.selectedIndex = selectSprite(selectElement.length-2);
+            sprite.blobs = data.map(rect => convertToBlob(rect));
+            sprite.loading = false;
 
             drawSpriteCanvas()
         });
@@ -540,12 +557,18 @@ function addSpriteFromCrop(image, file, name) {
 
 
 function addSpriteFromFile(image, file, index) {
+    const sprite = new SpriteData(image, file);
+    sprites.push(sprite);
+
+    spriteIndex = index;
+
+    drawSpriteCanvas()
+
     sendBlobDetectionRequest(file)
         .then(response => response.json())
         .then(data => {
-            sprites.push(new SpriteData(image, file, data.map(rect => convertToBlob(rect))))
-
-            spriteIndex = index;
+            sprite.blobs = data.map(rect => convertToBlob(rect));
+            sprite.loading = false;
 
             drawSpriteCanvas()
         });
