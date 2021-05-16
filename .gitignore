@@ -31,4 +31,5 @@ build/
 
 ### VS Code ###
 .vscode/
-/src/main/resources/static/scss/
+/src/main/resources/static/bootstrap/scss/
+/src/main/resources/static/bootstrap/
