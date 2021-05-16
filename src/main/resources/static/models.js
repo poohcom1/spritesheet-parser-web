@@ -1,4 +1,4 @@
-import {rectContainsRect, rectIntersects} from "./utils.js";
+import {rectIntersects} from "./utils.js";
 
 export class Marquee {
     #anchorX
@@ -50,14 +50,23 @@ export class SpriteData {
     #blobs = [];
     #originalBlobs = [];
 
-    constructor(image, file) {
+    /**
+     * @param {HTMLImageElement} image
+     * @param {File} file
+     * @param {string} name
+     */
+    constructor(image, file, name) {
         this.image = image;
         this.file = file;
+        this.name = name;
 
         this.loading = true;
         this.threshold = 2;
     }
 
+    /**
+     * @return {BlobRect[]}
+     */
     get blobs() {
         return this.#blobs;
     }
@@ -71,9 +80,16 @@ export class SpriteData {
         this.#blobs = JSON.parse(JSON.stringify(this.#originalBlobs))
     }
 
+    /**
+     * @return {string}
+     */
     getName = () => {
-        const index = this.file.name.lastIndexOf(".");
-        return this.file.name.substring(0, index);
+        try {
+            const index = this.name.lastIndexOf(".");
+            return this.name.substring(0, index !== -1 ? index : this.name.lastIndexOf());
+        } catch (e) {
+            return "undefined"
+        }
     }
 
     /** @param {BlobRect[]} newBlobs */
@@ -108,71 +124,6 @@ export class SpriteData {
     }
 }
 
-// /**
-//  * @param {HTMLImageElement} image
-//  * @param {File} file
-//  * @param {number} id
-//  * @param {BlobRect[]} blobs
-//  * @constructor
-//  */
-// export function SpriteData(image, file) {
-//     //blobs = blobs.filter(b => b.points.length !== 0)
-//
-//     this.loading = true;
-//
-//     this.image = image;
-//     this.file = file;
-//
-//     let blobs = [];
-//     let originalBlobs = JSON.parse(JSON.stringify(blobs))
-//
-//     set blobs() {
-//
-//     }
-//
-//
-//     this.threshold = 2;
-//
-//     this.reset = () => {
-//         this.blobs = JSON.parse(JSON.stringify(originalBlobs))
-//     }
-//
-//     this.getName = () => {
-//         const index = this.file.name.lastIndexOf(".");
-//         return this.file.name.substring(0, index);
-//     }
-//
-//     /** @param {BlobRect[]} newBlobs */
-//     this.updateBlobs = (newBlobs) => {
-//
-//         const editedBlobs = this.blobs.filter(blob => blob.edited)
-//
-//         this.blobs = [];
-//
-//         for (let i = 0; i < newBlobs.length; i++) {
-//             let intersectsEditedBlob = false;
-//
-//             for (let j = 0; j < editedBlobs.length; j++) {
-//                 const editedBlob = editedBlobs[j];
-//
-//                 if (rectIntersects(newBlobs[i], editedBlob)) {
-//                     intersectsEditedBlob = true;
-//
-//                     if (this.blobs.indexOf(editedBlob) === -1) {
-//                         this.blobs.push(editedBlob);
-//                     }
-//                     break;
-//                 }
-//             }
-//
-//             if (!intersectsEditedBlob) {
-//                 this.blobs.push(newBlobs[i])
-//             }
-//         }
-//
-//         originalBlobs = JSON.parse(JSON.stringify(newBlobs));
-//     }
-// }
 
 /**
  * @typedef DetectedBlob

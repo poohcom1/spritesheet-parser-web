@@ -461,6 +461,7 @@ function getCurrentSprite() {
 function drawSpriteCanvas() {
     if (sprites.length === 0) return;
 
+
     const ctx = CANVASES.SPRITE.getContext("2d");
 
     scaleCanvas(CANVASES.SPRITE, getCurrentSprite().image.width, getCurrentSprite().image.height)
@@ -536,7 +537,7 @@ CANVASES.SPRITE.draw = drawSpriteCanvas;
  * @param {string} name
  */
 function addSpriteFromCrop(image, file, name) {
-    const sprite = new SpriteData(image, file);
+    const sprite = new SpriteData(image, file, name);
     sprites.push(sprite);
 
     const option = document.createElement("option")
@@ -561,7 +562,7 @@ function addSpriteFromCrop(image, file, name) {
 
 
 function addSpriteFromFile(image, file, index) {
-    const sprite = new SpriteData(image, file);
+    const sprite = new SpriteData(image, file, file.name);
     sprites.push(sprite);
 
     spriteIndex = index;
@@ -668,10 +669,16 @@ downloadButton.onclick = () => {
     // Convert url to data
     Promise.all(fetches).then(responses =>
         // Convert data to blob
+        /**
+         * @param responses
+         * @return {Promise<Blob[]>}
+         */
         Promise.all(responses.map(res => res.blob())).then(blobs => {
-            blobs.forEach((blob, i) =>
-                zip.file(getCurrentSprite().getName() + "_" + i.toString().padStart(2, '0') + ".png", new File([blob], "f.png")
-                ));
+            blobs.forEach((blob, i) => {
+                const blobPart = [];
+                blobPart.push(blob);
+                zip.file(getCurrentSprite().getName() + "_" + i.toString().padStart(2, '0') + ".png", new File(blobPart, "f.png"));
+            });
 
             zip.generateAsync({type:"base64"}).then(function (base64) {
                 const link = document.createElement('a');
