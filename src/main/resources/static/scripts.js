@@ -676,7 +676,7 @@ downloadButton.onclick = () => {
         Promise.all(responses.map(res => res.blob())).then(blobs => {
             blobs.forEach((blob, i) => {
                 const blobPart = [];
-                blobPart.push();
+                blobPart.push(blob);
                 zip.file(getCurrentSprite().getName() + "_" + i.toString().padStart(2, '0') + ".png", new File(blobPart, "f.png"));
             });
 
