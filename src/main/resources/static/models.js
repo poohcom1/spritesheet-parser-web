@@ -47,7 +47,7 @@ export function SpritesheetData(image, name, marquees = [])  {
 }
 
 export class SpriteData {
-    #blobs = [];
+
     #originalBlobs = [];
 
     /**
@@ -59,25 +59,16 @@ export class SpriteData {
         this.image = image;
         this.file = file;
         this.name = name;
+        
+        this.blobs = [];
 
         this.loading = true;
         this.threshold = 2;
     }
-
-    /**
-     * @return {BlobRect[]}
-     */
-    get blobs() {
-        return this.#blobs;
-    }
-
-    set blobs(blobs) {
-        this.#originalBlobs = JSON.parse(JSON.stringify(blobs))
-        this.#blobs = blobs;
-    }
+    
 
     reset = () => {
-        this.#blobs = JSON.parse(JSON.stringify(this.#originalBlobs))
+        this.blobs = JSON.parse(JSON.stringify(this.#originalBlobs))
     }
 
     /**
@@ -92,12 +83,17 @@ export class SpriteData {
         }
     }
 
+    resetBlobs = (blobs) => {
+        this.blobs = blobs;
+        this.#originalBlobs = JSON.parse(JSON.stringify(blobs));
+    }
+
     /** @param {BlobRect[]} newBlobs */
     updateBlobs = (newBlobs) => {
 
-        const editedBlobs = this.#blobs.filter(blob => blob.edited)
+        const editedBlobs = this.blobs.filter(blob => blob.edited)
 
-        this.#blobs = [];
+        this.blobs = [];
 
         for (let i = 0; i < newBlobs.length; i++) {
             let intersectsEditedBlob = false;
@@ -108,15 +104,15 @@ export class SpriteData {
                 if (rectIntersects(newBlobs[i], editedBlob)) {
                     intersectsEditedBlob = true;
 
-                    if (this.#blobs.indexOf(editedBlob) === -1) {
-                        this.#blobs.push(editedBlob);
+                    if (this.blobs.indexOf(editedBlob) === -1) {
+                        this.blobs.push(editedBlob);
                     }
                     break;
                 }
             }
 
             if (!intersectsEditedBlob) {
-                this.#blobs.push(newBlobs[i])
+                this.blobs.push(newBlobs[i])
             }
         }
 

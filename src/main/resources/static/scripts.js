@@ -388,10 +388,11 @@ thresholdUp.onclick = () => {
     getCurrentSprite().threshold++;
     drawSpriteCanvas();
 
-    sendBlobDetectionRequest(getCurrentSprite().file, getCurrentSprite().threshold)
+    sendBlobDetectionRequest(getCurrentSprite().file, getCurrentSprite().threshold, getCurrentSprite().blobs.length, 1)
         .then((response) => response.json())
         .then(data => {
-            getCurrentSprite().updateBlobs(convertToBlobArray(data))
+            getCurrentSprite().updateBlobs(convertToBlobArray(data.blobs))
+            getCurrentSprite().threshold = data.threshold;
             getCurrentSprite().loading = false;
             drawSpriteCanvas();
         })
@@ -405,10 +406,11 @@ thresholdDown.onclick = () => {
     drawSpriteCanvas();
 
 
-    sendBlobDetectionRequest(getCurrentSprite().file, getCurrentSprite().threshold)
+    sendBlobDetectionRequest(getCurrentSprite().file, getCurrentSprite().threshold, getCurrentSprite().blobs.length, -1)
         .then((response) => response.json())
         .then(data => {
-            getCurrentSprite().updateBlobs(convertToBlobArray(data))
+            getCurrentSprite().updateBlobs(convertToBlobArray(data.blobs))
+            getCurrentSprite().threshold = data.threshold;
             getCurrentSprite().loading = false;
             drawSpriteCanvas();
         })
@@ -553,7 +555,7 @@ function addSpriteFromCrop(image, file, name) {
     sendBlobDetectionRequest(file)
         .then(response => response.json())
         .then(data => {
-            sprite.blobs = data.map(rect => convertToBlob(rect));
+            sprite.resetBlobs(data.blobs.map(rect => convertToBlob(rect)))
             sprite.loading = false;
 
             drawSpriteCanvas()
@@ -572,7 +574,7 @@ function addSpriteFromFile(image, file, index) {
     sendBlobDetectionRequest(file)
         .then(response => response.json())
         .then(data => {
-            sprite.blobs = data.map(rect => convertToBlob(rect));
+            sprite.resetBlobs(data.blobs.map(rect => convertToBlob(rect)))
             sprite.loading = false;
 
             drawSpriteCanvas()
@@ -600,8 +602,10 @@ const selectSprite = (i) => {
 
 initUploadFileForm(spriteForm, selectSprite, addSpriteFromFile)
 
+// todo: reset doesn't work
 document.getElementById("resetBlobs").onclick = () => {
     getCurrentSprite().reset();
+
     selectedBlobs = []
     selectedPoints = []
     drawSpriteCanvas();
