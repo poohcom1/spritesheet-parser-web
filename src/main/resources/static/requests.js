@@ -1,5 +1,7 @@
 // Config
-const HOST_SERVER = location.host === "localhost:63343" ? "http://localhost:8080" : "";
+// noinspection JSCheckFunctionSignatures
+
+const HOST_SERVER = location.host === "localhost:63342" ? "http://localhost:8080" : "";
 
 /**
  * @param {File} file image to crop
@@ -24,12 +26,19 @@ export function sendCropRequest(file, x, y, w, h) {
 }
 
 /**
+ * @typedef BlobData
+ * @property {number} id
+ * @property {DetectedBlob[]} blobs
+ * @property {number} threshold
+ */
+
+/**
  * @param {File} file
  * @param distance
  * @param count
  * @param deltaThreshold
  * @param backgroundColors
- * @return {Promise<Response>}
+ * @return {Promise<BlobData>}
  */
 export function sendBlobDetectionRequest(file, distance=2, count=0, deltaThreshold=1, backgroundColors=[]) {
     const formData = new FormData()
@@ -41,8 +50,9 @@ export function sendBlobDetectionRequest(file, distance=2, count=0, deltaThresho
     formData.append("primaryOrder", 0)
     formData.append("secondaryOrder", 1)
 
+
     return fetch(HOST_SERVER + "/spritesheet", {
         method: "POST",
         body: formData
-    })
+    }).then((response) => response.json())
 }

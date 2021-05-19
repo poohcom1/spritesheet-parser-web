@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicLong;
 
 
-@CrossOrigin(origins = "http://localhost:63343")
+@CrossOrigin(origins = "http://localhost:63342")
 @RestController
 public class ImageController {
     AtomicLong ids = new AtomicLong();

@@ -77,7 +77,7 @@ export class SpriteData {
     getName = () => {
         try {
             const index = this.name.lastIndexOf(".");
-            return this.name.substring(0, index !== -1 ? index : this.name.lastIndexOf());
+            return this.name.substring(0, index !== -1 ? index : this.name.length);
         } catch (e) {
             return "undefined"
         }
@@ -234,8 +234,24 @@ export function initUploadFileForm(formElement, onSelect, onImageAdded) {
         image.onload = () => {
             let option = document.createElement("option")
 
-            option.text = inputElement.files[0].name;
+            let name = inputElement.files[0].name;
+            // Look for duplicates, including ones with numbers attached
+            const reg = new RegExp(`\\b${name}\\b ?(\\(\\d\\))?`)
 
+            let count = 0;
+
+            for (let i = 0; i < selectElement.options.length; i++) {
+                if (reg.test(selectElement.options[i].text)) {
+                    count++;
+                }
+            }
+
+            // Attach duplicate count
+            if (count > 0) {
+                name += ` (${count+1})`;
+            }
+
+            option.text = name;
 
             // Insert before last element (preserved for upload option)
             selectElement.insertBefore(option, selectElement[selectElement.length-1]);
@@ -243,6 +259,8 @@ export function initUploadFileForm(formElement, onSelect, onImageAdded) {
             selectElement.selectedIndex = selectElement.length-2;
 
             onImageAdded(image, inputElement.files[0], selectElement.selectedIndex);
+
+            inputElement.value = ''
         }
     }
 }
