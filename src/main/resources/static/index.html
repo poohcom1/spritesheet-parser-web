@@ -97,7 +97,7 @@
 
         <div class="options-radio">
             <label for="showNumbers">Show Numbering</label>
-            <input id="showNumbers" type="checkbox"/>
+            <input id="showNumbers" class="form-check-inline" type="checkbox"/>
         </div>
 
         <button class="btn btn-danger" id="resetBlobs">Reset</button>
@@ -106,13 +106,36 @@
 
 <div class="section container player-container">
     <h3>Sprite Player</h3>
-    <div class="canvas-container">
+    <div class="container d-flex">
+        <div class="">
+            <p class="inline"><strong>Frame: </strong></p>
+            <p id="frame" class="inline">0</p>
+        </div>
+    </div>
+    <div class="canvas-container mb-0">
         <canvas id="playerCanvas"></canvas>
     </div>
+    <div class="container mt-0">
+        <label for="loop" >Loop</label>
+        <input id="loop" class="form-check-inline" type="checkbox" checked="checked"/>
+    </div>
 
-    <button class="btn btn-primary" id="playButton">Play</button>
-    <button class="btn btn-primary" id="nextFrame">next</button>
-    <p id="frame"></p>
+
+
+    <div id="playerControls"
+         class="container player-container button-container d-flex justify-content-center align-items-center">
+        <button class="btn btn-primary bg-transparent" id="previousFrame">
+            <i class="fas fa-backward"></i>
+        </button>
+        <button class="btn btn-primary bg-transparent" id="playButton">
+            <i class="fas fa-pause" id="playIcon"></i>
+        </button>
+        <button class="btn btn-primary bg-transparent" id="nextFrame">
+            <i class="fas fa-forward"></i>
+        </button>
+    </div>
+
+
 </div>
 
 <div class="container download-container">

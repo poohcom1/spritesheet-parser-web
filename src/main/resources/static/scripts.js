@@ -48,7 +48,10 @@ const removePointsButton = document.getElementById("removePointsButton")
 const showNumberCheckbox = document.getElementById("showNumbers")
 
 const playButton = document.getElementById("playButton")
+const playIcon = document.getElementById("playIcon")
 const nextButton = document.getElementById("nextFrame")
+const previousButton = document.getElementById("previousFrame")
+const loopButton = document.getElementById("loop")
 
 const downloadButton = document.getElementById("downloadSpriteButton")
 
@@ -63,7 +66,7 @@ const POINT_COLOR = "rgba(0, 0, 255, 0.5)"
 const EDITED_BLOB_COLOR = "rgba(0,255,0, 1.0)"
 const SELECTED_EDITED_BLOB_COLOR = "rgba(0,255,0,0.5)"
 
-const TEXT_COLOR = "rgba(0, 0, 0, 1.0)"
+const TEXT_COLOR = "rgba(255, 255, 255, 1.0)"
 const TEXT_BACKGROUND = "rgba(255, 0, 0, 0.25)"
 
 const TEXT_SIZE = 20;
@@ -481,6 +484,8 @@ function drawSpriteCanvas() {
 
     scaleCanvas(CANVASES.SPRITE, getCurrentSprite().image.width, getCurrentSprite().image.height)
 
+    ctx.save();
+
     if (sprites.length === 0) {
         ctx.clearRect(0, 0, CANVASES.SPRITE.width, CANVASES.SPRITE.height);
         console.log("EMPTY")
@@ -497,7 +502,7 @@ function drawSpriteCanvas() {
         ctx.textAlign = "center";
         ctx.font = "30px Arial"
         ctx.fillStyle = "white"
-        ctx.fillText("Detecting Blobs", CANVASES.SPRITE.parentElement.offsetWidth / 2, CANVASES.SPRITE.parentElement.offsetHeight / 2)
+        ctx.fillText("Detecting Blobs", DEFAULT_WIDTH / 2, CANVASES.SPRITE.parentElement.offsetHeight / 2)
     }
 
     // Blobs
@@ -514,8 +519,9 @@ function drawSpriteCanvas() {
                 const text = "" + (getCurrentSprite().blobs.indexOf(b) + 1);
                 const size = ctx.measureText(text);
                 ctx.fillStyle = TEXT_BACKGROUND
-                ctx.fillRect(b.x + (b.width - size.width) / 2 + 1, b.y + (b.height - TEXT_SIZE) / 2 + 1, size.width + 1, TEXT_SIZE + 1)
+                //ctx.fillRect(b.x + (b.width - size.width) / 2 + 1, b.y + (b.height - TEXT_SIZE) / 2 + 1, size.width + 1, TEXT_SIZE + 1)
                 ctx.fillStyle = TEXT_COLOR
+
                 ctx.fillText(text, b.x + (b.width - size.width) / 2, b.y + (b.height + TEXT_SIZE) / 2)
             }
         })
@@ -561,7 +567,7 @@ function onFileBlobDetectionError(err, sprite, index) {
 
     const bsToast = new bootstrap.Toast(alertToast, {animation: true, delay: 5000});
 
-    alertToast.querySelector(".toast-header").innerHTML = "File Error: " + sprite.getName();
+    alertToast.querySelector(".toast-header").innerHTML = sprite.getName();
     alertToast.querySelector(".toast-body").innerHTML = err;
 
     bsToast.show();
@@ -639,7 +645,7 @@ const selectSprite = (i) => {
 
 initUploadFileForm(spriteForm, selectSprite, addSpriteFromFile)
 
-// todo: reset doesn't work
+
 document.getElementById("resetBlobs").onclick = () => {
     getCurrentSprite().reset();
 
@@ -652,6 +658,7 @@ document.getElementById("resetBlobs").onclick = () => {
 // ========================================== SPRITE PLAYER ==============================================
 let _frame = 0;
 let isPlaying = true;
+let loop = true;
 
 function animateSprite() {
     if (isPlaying) {
@@ -664,8 +671,16 @@ function drawPlayerCanvas() {
     if (!(sprite && sprite.blobs.length > 0)) return;
 
     if (_frame >= sprite.blobs.length) {
-        _frame = 0;
+        if (loop) {
+            _frame = 0;
+        }else {
+            _frame = sprite.blobs.length-1;
+            isPlaying = false;
+            pause();
+            return;
+        }
     }
+
     const image = sprite.image;
     const blob = sprite.blobs[_frame];
 
@@ -688,12 +703,41 @@ CANVASES.PLAYER.draw = drawPlayerCanvas;
 setInterval(animateSprite, (1 / fps) * 1000)
 
 playButton.onclick = () => {
+    if (!loop) {
+        _frame = 0;
+    }
     isPlaying = !isPlaying
+    if (isPlaying) {
+        play();
+    } else {
+        pause();
+    }
+}
+
+function play() {
+    playIcon.classList.remove("fa-play")
+    playIcon.classList.add("fa-pause")
+}
+
+function pause() {
+    playIcon.classList.remove("fa-pause")
+    playIcon.classList.add("fa-play")
 }
 
 nextButton.onclick = () => {
     drawPlayerCanvas()
 }
+
+previousButton.onclick = () => {
+    _frame -= 2;
+    if (_frame <= 0) {
+        _frame = getCurrentSprite().blobs.length + _frame;
+    }
+    drawPlayerCanvas()
+}
+
+loopButton.onchange = () => loop = loopButton.checked;
+
 
 // ================================== DOWNLOAD =====================================
 downloadButton.onclick = () => {
