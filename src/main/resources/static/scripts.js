@@ -29,7 +29,12 @@ const CANVASES = {
     PLAYER: document.getElementById("playerCanvas"),
 }
 
+const DEFAULT_WIDTH = CANVASES.CROP.width;
+const DEFAULT_HEIGHT = CANVASES.CROP.height;
+
 Object.keys(CANVASES).forEach(k => CANVASES[k].scale = 1.0)
+
+const alertToast = document.getElementById("alertToast");
 
 
 // Blob buttons
@@ -116,7 +121,7 @@ onkeyup = (e) => {
     keys[e.key] = false;
 }
 
-onmouseup = (e) =>  {
+onmouseup = (e) => {
     mouseDown = false
     selectMarquee = new Marquee(0, 0)
     drawCropCanvas();
@@ -169,7 +174,7 @@ function getCanvasPos(e, canvas) {
         y = bounds.height;
     }
 
-    return {x: x/focusedCanvas.scale, y: y/focusedCanvas.scale}
+    return {x: x / focusedCanvas.scale, y: y / focusedCanvas.scale}
 }
 
 /**
@@ -244,7 +249,7 @@ CANVASES.CROP.onmousemove = (e) => {
     if (!getSpritesheet()) return;
     if (mouseDown) {
         const mousePos = getCanvasPos(e, CANVASES.CROP)
-        getSpritesheet().marquees[getSpritesheet().marquees.length-1].drag(mousePos.x, mousePos.y)
+        getSpritesheet().marquees[getSpritesheet().marquees.length - 1].drag(mousePos.x, mousePos.y)
     }
     drawCropCanvas()
 }
@@ -381,38 +386,44 @@ CANVASES.SPRITE.onmouseup = () => {
 }
 
 // BLOB DETECTION BUTTONS
-thresholdUp.onclick = () => {
-    if (getCurrentSprite().blobs.length <= 2) return;
+function changeDistanceThreshold(deltaThreshold) {
+    // Prevent decreasing threshold below 2 px
+    if (getCurrentSprite().threshold <= 2 && deltaThreshold < 0) return;
+    // Prevent increasing threshold when there are 2 or less blobs
+    if (getCurrentSprite().blobs.length <= 2 && deltaThreshold > 0) return;
 
-    getCurrentSprite().loading = true;
-    getCurrentSprite().threshold++;
+    const sprite = getCurrentSprite()
+
+    sprite.threshold += deltaThreshold;
+    sprite.loading = true;
     drawSpriteCanvas();
 
-    sendBlobDetectionRequest(getCurrentSprite().file, getCurrentSprite().threshold)
-        .then((response) => response.json())
+    sendBlobDetectionRequest(sprite.file, sprite.threshold, sprite.blobs.length, 1)
         .then(data => {
-            getCurrentSprite().updateBlobs(convertToBlobArray(data))
-            getCurrentSprite().loading = false;
+            sprite.updateBlobs(convertToBlobArray(data.blobs))
+            sprite.threshold = data.threshold;
+            sprite.loading = false;
             drawSpriteCanvas();
+        })
+        .catch(err => {
+            sprite.loading = false;
+            drawSpriteCanvas();
+
+            const bsToast = new bootstrap.Toast(alertToast, {animation: true, delay: 1000});
+
+            alertToast.querySelector(".toast-header").innerHTML = "Error: " + sprite.getName();
+            alertToast.querySelector(".toast-body").innerHTML = err;
+
+            bsToast.show();
+            setTimeout(() => bsToast.hide(), 1000);
         })
 }
 
-thresholdDown.onclick = () => {
-    if (getCurrentSprite().threshold <= 2) return;
 
-    getCurrentSprite().loading = true;
-    getCurrentSprite().threshold--;
-    drawSpriteCanvas();
+thresholdUp.onclick = () => changeDistanceThreshold(1);
 
+thresholdDown.onclick = () => changeDistanceThreshold(-1);
 
-    sendBlobDetectionRequest(getCurrentSprite().file, getCurrentSprite().threshold)
-        .then((response) => response.json())
-        .then(data => {
-            getCurrentSprite().updateBlobs(convertToBlobArray(data))
-            getCurrentSprite().loading = false;
-            drawSpriteCanvas();
-        })
-}
 
 // BLOB CANVAS BUTTONS
 mergeBlobButton.onclick = () => {
@@ -459,12 +470,22 @@ function getCurrentSprite() {
 
 
 function drawSpriteCanvas() {
-    if (sprites.length === 0) return;
-
-
     const ctx = CANVASES.SPRITE.getContext("2d");
 
+    if (sprites.length === 0) {
+        CANVASES.SPRITE.width = DEFAULT_WIDTH;
+        CANVASES.SPRITE.height = DEFAULT_HEIGHT;
+        ctx.clearRect(0, 0, CANVASES.SPRITE.width, CANVASES.SPRITE.height);
+        return;
+    }
+
     scaleCanvas(CANVASES.SPRITE, getCurrentSprite().image.width, getCurrentSprite().image.height)
+
+    if (sprites.length === 0) {
+        ctx.clearRect(0, 0, CANVASES.SPRITE.width, CANVASES.SPRITE.height);
+        console.log("EMPTY")
+        return;
+    }
 
     ctx.drawImage(getCurrentSprite().image, 0, 0)
 
@@ -476,34 +497,34 @@ function drawSpriteCanvas() {
         ctx.textAlign = "center";
         ctx.font = "30px Arial"
         ctx.fillStyle = "white"
-        ctx.fillText("Detecting Blobs", CANVASES.SPRITE.parentElement.offsetWidth/2, CANVASES.SPRITE.parentElement.offsetHeight/2)
+        ctx.fillText("Detecting Blobs", CANVASES.SPRITE.parentElement.offsetWidth / 2, CANVASES.SPRITE.parentElement.offsetHeight / 2)
     }
 
     // Blobs
     if (showBlobs)
-    getCurrentSprite().blobs.forEach(b => {
-        ctx.beginPath();
-        ctx.strokeStyle = b.edited ? EDITED_BLOB_COLOR : BLOB_COLOR;
-        ctx.rect(b.x-0.5, b.y-0.5, b.width+2, b.height+2);
-        ctx.closePath();
-        ctx.stroke();
+        getCurrentSprite().blobs.forEach(b => {
+            ctx.beginPath();
+            ctx.strokeStyle = b.edited ? EDITED_BLOB_COLOR : BLOB_COLOR;
+            ctx.rect(b.x - 0.5, b.y - 0.5, b.width + 2, b.height + 2);
+            ctx.closePath();
+            ctx.stroke();
 
-        if (showNumbers) {
-            ctx.font = `${TEXT_SIZE}px Arial`;
-            const text = "" + (getCurrentSprite().blobs.indexOf(b) + 1);
-            const size = ctx.measureText(text);
-            ctx.fillStyle = TEXT_BACKGROUND
-            ctx.fillRect(b.x + (b.width - size.width)/2 + 1,b.y + (b.height - TEXT_SIZE)/2 + 1, size.width+1, TEXT_SIZE+1)
-            ctx.fillStyle = TEXT_COLOR
-            ctx.fillText(text, b.x + (b.width - size.width)/2, b.y + (b.height + TEXT_SIZE)/2)
-        }
-    })
+            if (showNumbers) {
+                ctx.font = `${TEXT_SIZE}px Arial`;
+                const text = "" + (getCurrentSprite().blobs.indexOf(b) + 1);
+                const size = ctx.measureText(text);
+                ctx.fillStyle = TEXT_BACKGROUND
+                ctx.fillRect(b.x + (b.width - size.width) / 2 + 1, b.y + (b.height - TEXT_SIZE) / 2 + 1, size.width + 1, TEXT_SIZE + 1)
+                ctx.fillStyle = TEXT_COLOR
+                ctx.fillText(text, b.x + (b.width - size.width) / 2, b.y + (b.height + TEXT_SIZE) / 2)
+            }
+        })
 
     // Selected blobs
 
     selectedBlobs.forEach(b => {
         ctx.fillStyle = b.edited ? SELECTED_EDITED_BLOB_COLOR : SELECTED_BLOB_COLOR;
-        ctx.fillRect(b.x, b.y, b.width+1, b.height+1)
+        ctx.fillRect(b.x, b.y, b.width + 1, b.height + 1)
     })
 
     ctx.fillStyle = POINT_COLOR;
@@ -521,7 +542,7 @@ function drawSpriteCanvas() {
         const h = selectMarquee.height;
 
         m.rect(x, y, w, h)
-        m.rect(x+1, y+1, w-2, h-2)
+        m.rect(x + 1, y + 1, w - 2, h - 2)
         ctx.clip(m, "evenodd");
         ctx.globalCompositeOperation = "exclusion"
         ctx.fillStyle = "white"
@@ -530,6 +551,21 @@ function drawSpriteCanvas() {
 }
 
 CANVASES.SPRITE.draw = drawSpriteCanvas;
+
+function onFileBlobDetectionError(err, sprite, index) {
+    sprites.splice(index, 1);
+    spriteForm.querySelector("select").remove(index);
+
+    console.log(sprites.length)
+    drawSpriteCanvas();
+
+    const bsToast = new bootstrap.Toast(alertToast, {animation: true, delay: 5000});
+
+    alertToast.querySelector(".toast-header").innerHTML = "File Error: " + sprite.getName();
+    alertToast.querySelector(".toast-body").innerHTML = err;
+
+    bsToast.show();
+}
 
 /**
  * @param image
@@ -544,20 +580,23 @@ function addSpriteFromCrop(image, file, name) {
     option.text = name;
 
     const selectElement = spriteForm.querySelector("select")
-    selectElement.insertBefore(option, selectElement[selectElement.length-1]);
+    // Insert before last element
+    selectElement.insertBefore(option, selectElement[selectElement.length - 1]);
 
-    selectElement.selectedIndex = selectSprite(selectElement.length-2);
+    const index = selectSprite(selectElement.length - 2);
+
+    selectElement.selectedIndex = index
 
     drawSpriteCanvas()
 
     sendBlobDetectionRequest(file)
-        .then(response => response.json())
         .then(data => {
-            sprite.blobs = data.map(rect => convertToBlob(rect));
+            sprite.resetBlobs(data.blobs.map(rect => convertToBlob(rect)))
             sprite.loading = false;
 
             drawSpriteCanvas()
-        });
+        })
+        .catch(err => onFileBlobDetectionError(err, sprite, index));
 }
 
 
@@ -570,13 +609,13 @@ function addSpriteFromFile(image, file, index) {
     drawSpriteCanvas()
 
     sendBlobDetectionRequest(file)
-        .then(response => response.json())
         .then(data => {
-            sprite.blobs = data.map(rect => convertToBlob(rect));
+            sprite.resetBlobs(data.blobs.map(rect => convertToBlob(rect)))
             sprite.loading = false;
 
             drawSpriteCanvas()
-        });
+        })
+        .catch(err => onFileBlobDetectionError(err, sprite, index));
 }
 
 /** @param i
@@ -600,8 +639,10 @@ const selectSprite = (i) => {
 
 initUploadFileForm(spriteForm, selectSprite, addSpriteFromFile)
 
+// todo: reset doesn't work
 document.getElementById("resetBlobs").onclick = () => {
     getCurrentSprite().reset();
+
     selectedBlobs = []
     selectedPoints = []
     drawSpriteCanvas();
@@ -644,7 +685,7 @@ function drawPlayerCanvas() {
 
 CANVASES.PLAYER.draw = drawPlayerCanvas;
 
-setInterval(animateSprite, (1/fps) * 1000)
+setInterval(animateSprite, (1 / fps) * 1000)
 
 playButton.onclick = () => {
     isPlaying = !isPlaying
@@ -680,7 +721,7 @@ downloadButton.onclick = () => {
                 zip.file(getCurrentSprite().getName() + "_" + i.toString().padStart(2, '0') + ".png", new File(blobPart, "f.png"));
             });
 
-            zip.generateAsync({type:"base64"}).then(function (base64) {
+            zip.generateAsync({type: "base64"}).then(function (base64) {
                 const link = document.createElement('a');
                 link.href = "data:application/zip;base64," + base64;
                 link.download = getCurrentSprite().getName() + ".zip";
