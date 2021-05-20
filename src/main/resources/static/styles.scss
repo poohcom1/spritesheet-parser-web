@@ -74,14 +74,18 @@ body {
     border: 1px solid white;
 }
 
-
+// Overwrites
 
 button, label {
     user-select: none;
 }
 
 button {
-    margin: 5px 10px 0 10px;
+    margin: 5px;
+}
+
+button:active {
+    border-style: outset;
 }
 
 .button-container {
@@ -129,6 +133,9 @@ footer {
     padding: 20px;
 }
 
+.inline {
+    display: inline;
+}
 
 /* Scrollbar for body */
 
