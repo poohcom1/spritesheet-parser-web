@@ -29,8 +29,8 @@ const CANVASES = {
     PLAYER: document.getElementById("playerCanvas"),
 }
 
-const DEFAULT_WIDTH = CANVASES.CROP.width;
-const DEFAULT_HEIGHT = CANVASES.CROP.height;
+const DEFAULT_WIDTH = CANVASES.SPRITE.width;
+const DEFAULT_HEIGHT = CANVASES.SPRITE.height;
 
 Object.keys(CANVASES).forEach(k => CANVASES[k].scale = 1.0)
 
@@ -190,7 +190,6 @@ function scaleCanvas(canvas, width, height) {
 
     ctx.imageSmoothingEnabled = true;
     ctx.imageSmoothingQuality = "high";
-
 
     canvas.width = width;
     canvas.height = height;
@@ -619,6 +618,8 @@ function addSpriteFromFile(image, file, index) {
             sprite.resetBlobs(data.blobs.map(rect => convertToBlob(rect)))
             sprite.loading = false;
 
+            selectSprite(index);
+
             drawSpriteCanvas()
         })
         .catch(err => onFileBlobDetectionError(err, sprite, index));
@@ -635,8 +636,8 @@ const selectSprite = (i) => {
 
     dimensions = getMaxDimensions(getCurrentSprite().blobs)
 
-    CANVASES.SPRITE.width = dimensions.width;
-    CANVASES.SPRITE.height = dimensions.height;
+    CANVASES.PLAYER.width = dimensions.width;
+    CANVASES.PLAYER.height = dimensions.height;
 
     drawSpriteCanvas();
 
@@ -662,6 +663,7 @@ let loop = true;
 
 function animateSprite() {
     if (isPlaying) {
+        _frame++;
         drawPlayerCanvas()
     }
 }
@@ -670,13 +672,16 @@ function drawPlayerCanvas() {
     const sprite = getCurrentSprite();
     if (!(sprite && sprite.blobs.length > 0)) return;
 
+    // When loop ends
     if (_frame >= sprite.blobs.length) {
-        if (loop) {
+        // If looping, or not playing (manual forward), wrap around
+        if (loop || !isPlaying) {
             _frame = 0;
-        }else {
+        } else {
+            // Stop at last frame
             _frame = sprite.blobs.length-1;
             isPlaying = false;
-            pause();
+            setPauseButton();
             return;
         }
     }
@@ -694,8 +699,6 @@ function drawPlayerCanvas() {
     ctx.drawImage(image, blob.x, blob.y, blob.width, blob.height, 0, 0, blob.width, blob.height)
 
     document.getElementById("frame").innerText = _frame;
-
-    _frame++;
 }
 
 CANVASES.PLAYER.draw = drawPlayerCanvas;
@@ -708,28 +711,31 @@ playButton.onclick = () => {
     }
     isPlaying = !isPlaying
     if (isPlaying) {
-        play();
+        setPlayButton();
     } else {
-        pause();
+        setPauseButton();
     }
 }
 
-function play() {
+function setPlayButton() {
     playIcon.classList.remove("fa-play")
     playIcon.classList.add("fa-pause")
 }
 
-function pause() {
+function setPauseButton() {
     playIcon.classList.remove("fa-pause")
     playIcon.classList.add("fa-play")
 }
 
 nextButton.onclick = () => {
+    _frame++;
     drawPlayerCanvas()
 }
 
 previousButton.onclick = () => {
-    _frame -= 2;
+    if (!(getCurrentSprite() && getCurrentSprite().blobs.length > 0)) return;
+
+    _frame--;
     if (_frame <= 0) {
         _frame = getCurrentSprite().blobs.length + _frame;
     }

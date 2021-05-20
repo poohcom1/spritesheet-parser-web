@@ -74,6 +74,11 @@ body {
     border: 1px solid white;
 }
 
+.player-section {
+    border-radius: 10px;
+    border: 1px solid $primary;
+}
+
 // Overwrites
 
 button, label {
@@ -104,6 +109,7 @@ canvas {
     image-rendering: crisp-edges;
 }
 
+
 .canvas-container {
     resize: vertical;
 
@@ -117,6 +123,35 @@ canvas {
 
     background-image: url("assets/background.png");
     background-repeat:repeat;
+}
+
+.sprite-container {
+    min-width: 0;
+}
+
+.player-container {
+    min-height: 0;
+    height: fit-content;
+}
+
+.sprite-canvas-container {
+    resize: vertical;
+
+    min-width: 0;
+    max-width: border-box;
+    min-height: 30px;
+    max-height: 65vh;
+    overflow: scroll;
+
+    margin: 10px 0 0;
+    padding: 0;
+
+    background-image: url("assets/background.png");
+    background-repeat:repeat;
+}
+
+.player-canvas-container {
+
 }
 
 .file-input {
