@@ -725,10 +725,14 @@ function pause() {
 }
 
 nextButton.onclick = () => {
+    if (!getCurrentSprite) return;
+
     drawPlayerCanvas()
 }
 
 previousButton.onclick = () => {
+    if (!getCurrentSprite) return;
+
     _frame -= 2;
     if (_frame <= 0) {
         _frame = getCurrentSprite().blobs.length + _frame;
