@@ -725,13 +725,13 @@ function pause() {
 }
 
 nextButton.onclick = () => {
-    if (!getCurrentSprite) return;
+    if (!getCurrentSprite()) return;
 
     drawPlayerCanvas()
 }
 
 previousButton.onclick = () => {
-    if (!getCurrentSprite) return;
+    if (!getCurrentSprite()) return;
 
     _frame -= 2;
     if (_frame <= 0) {
