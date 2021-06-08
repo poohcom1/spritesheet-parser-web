@@ -221,6 +221,7 @@ export function initUploadFileForm(formElement, onSelect, onImageAdded) {
 
                 handleFile(e.dataTransfer.files[0], e.dataTransfer.files[0].name)
             } else {
+                spinner.setAttribute("hidden", "true")
                 errorToast("Dropped file is not an image!")
             }
         } else {
@@ -231,22 +232,27 @@ export function initUploadFileForm(formElement, onSelect, onImageAdded) {
                 .then(blob => {
                     handleFile(blob, data)
 
-                    spinner.setAttribute("hidden", "true")
                 })
                 .catch(() => {
                     fetch("https://poohcom1-cors-anywhere.herokuapp.com/" + data)
                         .then(res => res.blob())
                         .then(blob => {
-                            if (blob.type === "text/html") {
+                            console.log(blob)
+                            if (blob.type === "text/html" || blob.type === "") {
+                                console.log("ERROR")
                                 throw new Error;
                             }
 
                             blob.name = data;
 
-                            spinner.setAttribute("hidden", "true")
                             handleFile(blob, data)
                         })
-                        .catch(() => errorToast("Invalid image format!"))
+                        .catch((err) => {
+                            console.log(err)
+                            spinner.setAttribute("hidden", "true");
+
+                            errorToast("Invalid format!")
+                        })
                 })
         }
     }
@@ -282,6 +288,7 @@ export function initUploadFileForm(formElement, onSelect, onImageAdded) {
     }
 
     const handleFile = (file, name) => {
+        spinner.setAttribute("hidden", "true")
         console.log("Image added from file")
 
         let imageUrl = URL.createObjectURL(file)
