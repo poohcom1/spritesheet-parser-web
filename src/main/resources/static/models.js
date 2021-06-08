@@ -1,4 +1,5 @@
-import {rectIntersects} from "./utils.js";
+import { rectIntersects } from "./utils.js";
+import { errorToast } from "./scripts.js";
 
 export class Marquee {
     #anchorX
@@ -39,7 +40,7 @@ export class Marquee {
  * @param {Marquee[]} marquees
  * @constructor
  */
-export function SpritesheetData(image, name, marquees = [])  {
+export function SpritesheetData(image, name, marquees = []) {
     this.image = image;
     this.name = name;
     this.marquees = marquees;
@@ -59,13 +60,13 @@ export class SpriteData {
         this.image = image;
         this.file = file;
         this.name = name;
-        
+
         this.blobs = [];
 
         this.loading = true;
         this.threshold = 2;
     }
-    
+
 
     reset = () => {
         this.blobs = JSON.parse(JSON.stringify(this.#originalBlobs))
@@ -183,6 +184,7 @@ export function BlobRect(x, y, width, height, points, row, col, edited = false) 
  * @param {File} file
  * @param {number} index
  */
+
 /**
  * @callback fileSelectCallback
  * @param {number} index Index to switch to. An index of -1 will result in no change
@@ -196,6 +198,58 @@ export function BlobRect(x, y, width, height, points, row, col, edited = false) 
 export function initUploadFileForm(formElement, onSelect, onImageAdded) {
     const inputElement = formElement.querySelector("input");
     const selectElement = formElement.querySelector("select");
+    const dropElement = formElement.querySelector(".drop-image");
+    const spinner = formElement.querySelector(".spinner-border");
+
+    dropElement.ondragover = (e) => {
+        e.preventDefault()
+        dropElement.classList.add("drop-enter")
+    };
+    dropElement.ondragleave = () => dropElement.classList.remove("drop-enter");
+
+    dropElement.ondrop = (e) => {
+        e.preventDefault();
+        dropElement.classList.remove("drop-enter");
+        spinner.removeAttribute("hidden");
+
+        const imageTypes = [ 'image/png', 'image/gif', 'image/bmp', 'image/jpg' ];
+        if (e.dataTransfer && e.dataTransfer.files[0]) {
+
+            const fileType = e.dataTransfer.files[0].type;
+            if (imageTypes.includes(fileType)) {
+                console.log(e.dataTransfer.files[0])
+
+                handleFile(e.dataTransfer.files[0], e.dataTransfer.files[0].name)
+            } else {
+                errorToast("Dropped file is not an image!")
+            }
+        } else {
+            let data = e.dataTransfer.getData("text");
+
+            fetch(data)
+                .then(res => res.blob())
+                .then(blob => {
+                    handleFile(blob, data)
+
+                    spinner.setAttribute("hidden", "true")
+                })
+                .catch(() => {
+                    fetch("https://poohcom1-cors-anywhere.herokuapp.com/" + data)
+                        .then(res => res.blob())
+                        .then(blob => {
+                            if (blob.type === "text/html") {
+                                throw new Error;
+                            }
+
+                            blob.name = data;
+
+                            spinner.setAttribute("hidden", "true")
+                            handleFile(blob, data)
+                        })
+                        .catch(() => errorToast("Invalid image format!"))
+                })
+        }
+    }
 
     formElement.onclick = (e) => {
         if (selectElement.length === 1) {
@@ -210,7 +264,7 @@ export function initUploadFileForm(formElement, onSelect, onImageAdded) {
 
     selectElement.onchange = () => {
         // If the last element (upload file) element is select, don't trigger image switch
-        if (selectElement.selectedIndex === selectElement.length-1) {
+        if (selectElement.selectedIndex === selectElement.length - 1) {
             inputElement.click();
             selectElement.selectedIndex = onSelect(-1);
             return;
@@ -224,9 +278,13 @@ export function initUploadFileForm(formElement, onSelect, onImageAdded) {
             return;
         }
 
+        handleFile(inputElement.files[0], inputElement.files[0].name);
+    }
+
+    const handleFile = (file, name) => {
         console.log("Image added from file")
 
-        let imageUrl = URL.createObjectURL(inputElement.files[0])
+        let imageUrl = URL.createObjectURL(file)
 
         const image = new Image
         image.src = imageUrl
@@ -234,7 +292,6 @@ export function initUploadFileForm(formElement, onSelect, onImageAdded) {
         image.onload = () => {
             let option = document.createElement("option")
 
-            let name = inputElement.files[0].name;
             // Look for duplicates, including ones with numbers attached
             const reg = new RegExp(`\\b${name}\\b ?(\\(\\d\\))?`)
 
@@ -248,17 +305,17 @@ export function initUploadFileForm(formElement, onSelect, onImageAdded) {
 
             // Attach duplicate count
             if (count > 0) {
-                name += ` (${count+1})`;
+                name += ` (${ count + 1 })`;
             }
 
             option.text = name;
 
             // Insert before last element (preserved for upload option)
-            selectElement.insertBefore(option, selectElement[selectElement.length-1]);
+            selectElement.insertBefore(option, selectElement[selectElement.length - 1]);
+            // Set shown option
+            selectElement.selectedIndex = selectElement.length - 2;
 
-            selectElement.selectedIndex = selectElement.length-2;
-
-            onImageAdded(image, inputElement.files[0], selectElement.selectedIndex);
+            onImageAdded(image, file, selectElement.selectedIndex);
 
             inputElement.value = ''
         }
