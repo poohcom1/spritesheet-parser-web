@@ -41,7 +41,7 @@ $text-color: white;
 //@import "bootstrap/scss/tooltip";
 //@import "bootstrap/scss/popover";
 //@import "bootstrap/scss/carousel";
-//@import "bootstrap/scss/spinners";
+@import "bootstrap/scss/spinners";
 //@import "bootstrap/scss/offcanvas";
 
 // Helpers
@@ -171,6 +171,25 @@ footer {
 .inline {
     display: inline;
 }
+
+.drop-image {
+    padding: 2px;
+    border: 3px dashed;
+    border-color: transparent;
+    border-radius: 5px;
+    border-spacing: 5px;
+
+    transition: border-color 0.2s;
+}
+
+.drop-enter {
+    border-color: $primary-light;
+}
+
+.drop-disabled {
+    background-color: #0a53be;
+}
+
 
 /* Scrollbar for body */
 

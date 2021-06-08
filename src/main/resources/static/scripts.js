@@ -152,6 +152,15 @@ addEventListener("mousewheel", (e) => {
     }
 }, {passive: false})
 
+export function errorToast(err) {
+    const bsToast = new bootstrap.Toast(alertToast, {animation: true, delay: 2000});
+
+    //alertToast.querySelector(".toast-header").innerHTML = "Error: " + sprite.getName();
+    alertToast.querySelector(".toast-body").innerHTML = err;
+
+    bsToast.show();
+}
+
 /**
  * @param {MouseEvent} e
  * @param {HTMLCanvasElement} canvas
@@ -411,13 +420,7 @@ function changeDistanceThreshold(deltaThreshold) {
             sprite.loading = false;
             drawSpriteCanvas();
 
-            const bsToast = new bootstrap.Toast(alertToast, {animation: true, delay: 1000});
-
-            alertToast.querySelector(".toast-header").innerHTML = "Error: " + sprite.getName();
-            alertToast.querySelector(".toast-body").innerHTML = err;
-
-            bsToast.show();
-            setTimeout(() => bsToast.hide(), 1000);
+            errorToast(sprite.getName() + err);
         })
 }
 
@@ -564,12 +567,7 @@ function onFileBlobDetectionError(err, sprite, index) {
     console.log(sprites.length)
     drawSpriteCanvas();
 
-    const bsToast = new bootstrap.Toast(alertToast, {animation: true, delay: 5000});
-
-    alertToast.querySelector(".toast-header").innerHTML = sprite.getName();
-    alertToast.querySelector(".toast-body").innerHTML = err;
-
-    bsToast.show();
+    errorToast(err + ". Is your internet working?")
 }
 
 /**
