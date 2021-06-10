@@ -318,6 +318,7 @@ export function initUploadFileForm(formElement, onSelect, onImageAdded) {
 
             // Insert before last element (preserved for upload option)
             selectElement.insertBefore(option, selectElement[selectElement.length - 1]);
+
             // Set shown option
             selectElement.selectedIndex = selectElement.length - 2;
 

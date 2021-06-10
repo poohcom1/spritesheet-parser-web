@@ -1,5 +1,12 @@
-import {convertToBlob, convertToBlobArray, initUploadFileForm, Marquee, SpriteData, SpritesheetData} from "./models.js";
-import {sendBlobDetectionRequest} from "./requests.js"
+import {
+    convertToBlob,
+    convertToBlobArray,
+    initUploadFileForm,
+    Marquee,
+    SpriteData,
+    SpritesheetData
+} from "./models.js";
+import { sendBlobDetectionRequest } from "./requests.js"
 import {
     cropImage,
     cropSprite,
@@ -73,12 +80,12 @@ const TEXT_SIZE = 20;
 
 const ZOOM_AMOUNT = 2;
 
-const MERGE_KEYS = ['e', 'm'];
-const DELETE_KEYS = ['d'];
-const REMOVE_KEYS = ['r'];
+const MERGE_KEYS = [ 'e', 'm' ];
+const DELETE_KEYS = [ 'd' ];
+const REMOVE_KEYS = [ 'r' ];
 
-const ZOOM_PAN_KEYS = ['Control'];
-const MULTIPLE_MARQUEE_KEYS = ["Shift"]
+const ZOOM_PAN_KEYS = [ 'Control' ];
+const MULTIPLE_MARQUEE_KEYS = [ "Shift" ]
 
 // Data
 /** @type SpritesheetData[] */
@@ -92,7 +99,7 @@ let spriteIndex = 0;
 // States
 let mouseDown = false;
 
-let dimensions = {width: 0, height: 0} // Dimensions of current sprite for the sprite player canvas
+let dimensions = { width: 0, height: 0 } // Dimensions of current sprite for the sprite player canvas
 
 let showBlobs = true;
 let showNumbers = false;
@@ -150,10 +157,10 @@ addEventListener("mousewheel", (e) => {
             }
         }
     }
-}, {passive: false})
+}, { passive: false })
 
 export function errorToast(err) {
-    const bsToast = new bootstrap.Toast(alertToast, {animation: true, delay: 2000});
+    const bsToast = new bootstrap.Toast(alertToast, { animation: true, delay: 2000 });
 
     //alertToast.querySelector(".toast-header").innerHTML = "Error: " + sprite.getName();
     alertToast.querySelector(".toast-body").innerHTML = err;
@@ -186,7 +193,7 @@ function getCanvasPos(e, canvas) {
         y = bounds.height;
     }
 
-    return {x: x / focusedCanvas.scale, y: y / focusedCanvas.scale}
+    return { x: x / focusedCanvas.scale, y: y / focusedCanvas.scale }
 }
 
 /**
@@ -295,7 +302,7 @@ const selectSpritesheet = (i) => {
 
 initUploadFileForm(spritesheetForm, selectSpritesheet, addSpritesheetFromFile)
 
-// On crop
+// CROP BUTTON
 document.getElementById("cropButton").onclick = () => {
     const spritesheet = getSpritesheet();
 
@@ -354,7 +361,7 @@ CANVASES.SPRITE.onmousedown = (e) => {
         selectMarquee = new Marquee(mousePos.x, mousePos.y)
 
         getCurrentSprite().blobs.forEach(b => {
-            if (rectContainsPoint(b, {x: mousePos.x, y: mousePos.y})) selectedBlobs.push(b);
+            if (rectContainsPoint(b, { x: mousePos.x, y: mousePos.y })) selectedBlobs.push(b);
         })
     }
 }
@@ -371,7 +378,7 @@ CANVASES.SPRITE.onmousemove = (e) => {
 
         getCurrentSprite().blobs.forEach(b => {
             // Mouse in blob OR BlobRect in marquee
-            if (rectContainsPoint(b, {x: mousePos.x, y: mousePos.y}) || rectIntersects(selectMarquee, b)) {
+            if (rectContainsPoint(b, { x: mousePos.x, y: mousePos.y }) || rectIntersects(selectMarquee, b)) {
                 selectedBlobs.push(b);
 
                 // For points in marquee
@@ -517,7 +524,7 @@ function drawSpriteCanvas() {
             ctx.stroke();
 
             if (showNumbers) {
-                ctx.font = `${TEXT_SIZE}px Arial`;
+                ctx.font = `${ TEXT_SIZE }px Arial`;
                 const text = "" + (getCurrentSprite().blobs.indexOf(b) + 1);
                 const size = ctx.measureText(text);
                 ctx.fillStyle = TEXT_BACKGROUND
@@ -583,6 +590,7 @@ function addSpriteFromCrop(image, file, name) {
     option.text = name;
 
     const selectElement = spriteForm.querySelector("select")
+
     // Insert before last element
     selectElement.insertBefore(option, selectElement[selectElement.length - 1]);
 
@@ -596,6 +604,8 @@ function addSpriteFromCrop(image, file, name) {
         .then(data => {
             sprite.resetBlobs(data.blobs.map(rect => convertToBlob(rect)))
             sprite.loading = false;
+
+            selectSprite(index)
 
             drawSpriteCanvas()
         })
@@ -677,7 +687,7 @@ function drawPlayerCanvas() {
             _frame = 0;
         } else {
             // Stop at last frame
-            _frame = sprite.blobs.length-1;
+            _frame = sprite.blobs.length - 1;
             isPlaying = false;
             setPauseButton();
             return;
@@ -687,7 +697,10 @@ function drawPlayerCanvas() {
     const image = sprite.image;
     const blob = sprite.blobs[_frame];
 
-    if (!blob) return; // in case of overwrites during blob merging
+    if (!blob) {
+        console.log("Error: No blobs!")
+        return; // in case of overwrites during blob merging
+        }
 
     const ctx = CANVASES.PLAYER.getContext("2d")
 
@@ -769,7 +782,7 @@ downloadButton.onclick = () => {
                 zip.file(getCurrentSprite().getName() + "_" + i.toString().padStart(2, '0') + ".png", new File(blobPart, "f.png"));
             });
 
-            zip.generateAsync({type: "base64"}).then(function (base64) {
+            zip.generateAsync({ type: "base64" }).then(function (base64) {
                 const link = document.createElement('a');
                 link.href = "data:application/zip;base64," + base64;
                 link.download = getCurrentSprite().getName() + ".zip";

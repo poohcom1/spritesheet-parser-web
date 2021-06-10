@@ -124,23 +124,27 @@
 </div>
 
 
+
 <div class="section container player-container">
+    <h3>Sprite Player</h3>
     <div class="container d-flex">
         <div class="">
             <p class="inline"><strong>Frame: </strong></p>
             <p id="frame" class="inline">0</p>
         </div>
     </div>
-    <div class="container player-canvas-container">
-        <canvas id="playerCanvas" width="0" height="0"></canvas>
+    <div class="canvas-container mb-0">
+        <canvas id="playerCanvas"></canvas>
     </div>
     <div class="container mt-0">
-        <label for="loop">Loop</label>
+        <label for="loop" >Loop</label>
         <input id="loop" class="form-check-inline" type="checkbox" checked="checked"/>
     </div>
 
+
+
     <div id="playerControls"
-         class="container player-container button-container d-flex justify-content-center align-items-center m-0">
+         class="container player-container button-container d-flex justify-content-center align-items-center">
         <button class="btn btn-primary bg-transparent" id="previousFrame">
             <i class="fas fa-backward"></i>
         </button>
@@ -151,6 +155,8 @@
             <i class="fas fa-forward"></i>
         </button>
     </div>
+
+
 </div>
 
 
