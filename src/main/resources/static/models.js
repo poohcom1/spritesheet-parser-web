@@ -216,9 +216,8 @@ export function initUploadFileForm(formElement, onSelect, onImageAdded) {
         if (e.dataTransfer && e.dataTransfer.files[0]) {
 
             const fileType = e.dataTransfer.files[0].type;
+            // Drag upload file
             if (imageTypes.includes(fileType)) {
-                console.log(e.dataTransfer.files[0])
-
                 handleFile(e.dataTransfer.files[0], e.dataTransfer.files[0].name)
             } else {
                 spinner.setAttribute("hidden", "true")
@@ -227,33 +226,33 @@ export function initUploadFileForm(formElement, onSelect, onImageAdded) {
         } else {
             let data = e.dataTransfer.getData("text");
 
-            fetch(data)
-                .then(res => res.blob())
+            fetch("https://poohcom1-cors-anywhere.herokuapp.com/" + data, {
+                mode: "cors",
+                'Access-Control-Allow-Origin': '*'
+            })
+                .then(res => {
+                    res.headers.forEach(h => console.log(h))
+                    return res.blob()
+                })
                 .then(blob => {
+                    console.log(blob)
+                    if (blob.type === "text/html" || blob.type === "") {
+                        console.log("ERROR")
+                        throw new Error;
+                    }
+
+                    blob.name = "sprites";
+                    blob.lastModifiedDate = new Date;
+
                     handleFile(blob, data)
-
                 })
-                .catch(() => {
-                    fetch("https://poohcom1-cors-anywhere.herokuapp.com/" + data)
-                        .then(res => res.blob())
-                        .then(blob => {
-                            console.log(blob)
-                            if (blob.type === "text/html" || blob.type === "") {
-                                console.log("ERROR")
-                                throw new Error;
-                            }
+                .catch((err) => {
+                    console.log(err)
+                    spinner.setAttribute("hidden", "true");
 
-                            blob.name = data;
-
-                            handleFile(blob, data)
-                        })
-                        .catch((err) => {
-                            console.log(err)
-                            spinner.setAttribute("hidden", "true");
-
-                            errorToast("Invalid format!")
-                        })
+                    errorToast("Invalid format!")
                 })
+
         }
     }
 
