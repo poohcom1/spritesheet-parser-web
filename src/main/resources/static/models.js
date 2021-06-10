@@ -230,10 +230,7 @@ export function initUploadFileForm(formElement, onSelect, onImageAdded) {
                 mode: "cors",
                 'Access-Control-Allow-Origin': '*'
             })
-                .then(res => {
-                    res.headers.forEach(h => console.log(h))
-                    return res.blob()
-                })
+                .then(res => res.blob())
                 .then(blob => {
                     console.log(blob)
                     if (blob.type === "text/html" || blob.type === "") {
@@ -241,7 +238,13 @@ export function initUploadFileForm(formElement, onSelect, onImageAdded) {
                         throw new Error;
                     }
 
-                    blob.name = "sprites";
+                    let urlProtocolIndex = 8;
+
+                    if (!data.includes('https://')) {
+                        urlProtocolIndex = 7;
+                    }
+
+                    blob.name = data.substring(urlProtocolIndex, data.length).replaceAll('/', '_');
                     blob.lastModifiedDate = new Date;
 
                     handleFile(blob, data)
