@@ -61,7 +61,13 @@
 
         <div class="canvas-container">
             <canvas id="cropCanvas"></canvas>
+<!--            <div class="d-flex justify-content-end">-->
+<!--                <div class="zoom-in"><i class="fas fa-search-plus fa-2x m-1"></i></div>-->
+<!--                <div class="zoom-out"><i class="fas fa-search-minus fa-2x m-1"></i></div>-->
+<!--            </div>-->
         </div>
+
+
 
         <br/>
         <button class="btn btn-primary" id="cropButton">Crop Canvas</button>
@@ -73,15 +79,15 @@
 <div id="spriteSection" class="container section sprite-container">
     <div class="d-flex justify-content-between align-items-center "
          type="button"
-         data-bs-toggle="collapse"
          data-bs-target="#spriteBody">
+        <!--         data-bs-toggle="collapse"-->
         <div class="d-flex align-items-center">
             <i class="fas fa-grip-horizontal fa-2x me-2"></i>
             <h2 data-toggle="tooltip" title="Parse sprite strips into individual sprites">
                 Parse Sprites
             </h2>
         </div>
-        <i class="fas fa-bars fa-lg mr-2"></i>
+<!--        <i class="fas fa-bars fa-lg mr-2"></i>-->
     </div>
 
     <div id="spriteBody" class="container collapse show ">
@@ -149,7 +155,6 @@
         <input id="loop" class="form-check-inline" type="checkbox" checked="checked"/>
     </div>
 
-
     <div id="playerControls"
          class="container player-container button-container d-flex justify-content-center align-items-center">
         <button class="btn btn-primary bg-transparent" id="previousFrame">
@@ -180,7 +185,7 @@
 
 <footer>
     <div class="d-flex flex-column justify-content-center align-items-center">
-        <p>© 2021 Spritesheetparser v0.5.0</p>
+        <p>© 2021 Spritesheetparser v1.0.1</p>
         <a href="privacy_policy.html">Privacy Policy</a>
     </div>
 

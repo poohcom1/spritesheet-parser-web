@@ -201,6 +201,7 @@ export function initUploadFileForm(formElement, onSelect, onImageAdded) {
     const dropElement = formElement.querySelector(".drop-image");
     const spinner = formElement.querySelector(".spinner-border");
 
+    // Set drag and drop
     dropElement.ondragover = (e) => {
         e.preventDefault()
         dropElement.classList.add("drop-enter")
@@ -259,6 +260,7 @@ export function initUploadFileForm(formElement, onSelect, onImageAdded) {
         }
     }
 
+    // Set click file upload
     formElement.onclick = (e) => {
         if (selectElement.length === 1) {
             e.stopPropagation();
@@ -269,7 +271,7 @@ export function initUploadFileForm(formElement, onSelect, onImageAdded) {
 
     formElement.ondblclick = () => inputElement.click();
 
-
+    // Set on file select
     selectElement.onchange = () => {
         // If the last element (upload file) element is select, don't trigger image switch
         if (selectElement.selectedIndex === selectElement.length - 1) {

@@ -44,6 +44,7 @@ Object.keys(CANVASES).forEach(k => CANVASES[k].scale = 1.0)
 const alertToast = document.getElementById("alertToast");
 
 
+
 // Blob buttons
 const thresholdUp = document.getElementById("thresholdUp")
 const thresholdDown = document.getElementById("thresholdDown")
