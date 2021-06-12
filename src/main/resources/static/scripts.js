@@ -84,7 +84,7 @@ const MERGE_KEYS = [ 'e', 'm' ];
 const DELETE_KEYS = [ 'd' ];
 const REMOVE_KEYS = [ 'r' ];
 
-const ZOOM_PAN_KEYS = [ 'Control' ];
+const ZOOM_PAN_KEYS = [ 'Alt' ];
 const MULTIPLE_MARQUEE_KEYS = [ "Shift" ]
 
 // Data
@@ -405,6 +405,7 @@ CANVASES.SPRITE.onmouseup = () => {
 
 // BLOB DETECTION BUTTONS
 function changeDistanceThreshold(deltaThreshold) {
+    if (!getCurrentSprite()) return;
     // Prevent decreasing threshold below 2 px
     if (getCurrentSprite().threshold <= 2 && deltaThreshold < 0) return;
     // Prevent increasing threshold when there are 2 or less blobs
@@ -439,6 +440,7 @@ thresholdDown.onclick = () => changeDistanceThreshold(-1);
 
 // BLOB CANVAS BUTTONS
 mergeBlobButton.onclick = () => {
+    if (!getCurrentSprite()) return;
     mergeBlobsInlist(getCurrentSprite().blobs, selectedBlobs);
     selectedBlobs = [];
     selectedPoints = [];
@@ -446,6 +448,7 @@ mergeBlobButton.onclick = () => {
 }
 
 deleteBlobButton.onclick = () => {
+    if (!getCurrentSprite()) return;
     getCurrentSprite().blobs = getCurrentSprite().blobs.filter(b => !selectedBlobs.includes(b))
     selectedBlobs = [];
     selectedPoints = [];
@@ -453,6 +456,7 @@ deleteBlobButton.onclick = () => {
 }
 
 removePointsButton.onclick = () => {
+    if (!getCurrentSprite()) return;
     selectedBlobs.forEach(b => {
         const pointCount = removePoints(b, selectedPoints);
         if (pointCount === 0) getCurrentSprite().blobs.splice(getCurrentSprite().blobs.indexOf(b), 1)

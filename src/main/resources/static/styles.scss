@@ -2,7 +2,6 @@ $primary: rgb(175, 27, 27);
 $primary-dark: rgb(135, 21, 21);
 $primary-light: rgb(208, 80, 80);
 
-
 $background: rgb(42, 49 , 45);
 $text-color: white;
 
@@ -38,7 +37,7 @@ $text-color: white;
 //@import "bootstrap/scss/close";
 @import "bootstrap/scss/toasts";
 //@import "bootstrap/scss/modal";
-//@import "bootstrap/scss/tooltip";
+@import "bootstrap/scss/tooltip";
 //@import "bootstrap/scss/popover";
 //@import "bootstrap/scss/carousel";
 @import "bootstrap/scss/spinners";
@@ -62,6 +61,10 @@ body {
 
 .text-body {
     color: $text-color;
+}
+
+h2, h3, h4, h5 {
+    margin: 0;
 }
 
 .section {
@@ -125,8 +128,10 @@ canvas {
     background-repeat:repeat;
 }
 
+
 .sprite-container {
     min-width: 0;
+    border: 2px solid $primary-light;
 }
 
 .player-container {
